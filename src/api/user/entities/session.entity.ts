@@ -1,15 +1,7 @@
 import { Uuid } from '@/common/types/common.type';
-import { ESessionLoginScope } from '@/constants/entity.enum';
+import { ESessionUserType } from '@/constants/entity.enum';
 import { AbstractEntity } from '@/database/entities/abstract.entity';
-import {
-  Column,
-  Entity,
-  Index,
-  JoinColumn,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
-import { UserEntity } from './user.entity';
+import { Column, Entity, Index, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('sessions')
 export class SessionEntity extends AbstractEntity {
@@ -39,18 +31,10 @@ export class SessionEntity extends AbstractEntity {
 
   @Column({
     type: 'enum',
-    enum: ESessionLoginScope,
-    enumName: 'sessions_loginscope_enum',
+    enum: ESessionUserType,
+    enumName: 'sessions_user_type_enum',
     nullable: false,
-    name: 'login_scope',
+    name: 'user_type',
   })
-  loginScope: ESessionLoginScope;
-
-  @JoinColumn({
-    name: 'user_id',
-    referencedColumnName: 'id',
-    foreignKeyConstraintName: 'FK_session_user',
-  })
-  @ManyToOne(() => UserEntity, (user) => user.sessions)
-  user!: UserEntity;
+  user_type: ESessionUserType;
 }

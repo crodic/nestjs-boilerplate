@@ -8,6 +8,7 @@ import {
   BeforeInsert,
   BeforeUpdate,
   Column,
+  DataSource,
   DeleteDateColumn,
   Entity,
   Index,
@@ -17,7 +18,6 @@ import {
   PrimaryGeneratedColumn,
   Relation,
 } from 'typeorm';
-import { SessionEntity } from './session.entity';
 
 @Entity('users')
 @Index('UQ_user_provider', ['provider', 'providerId'], {
@@ -25,7 +25,10 @@ import { SessionEntity } from './session.entity';
   unique: true,
 })
 export class UserEntity extends AbstractEntity {
-  constructor(data?: Partial<UserEntity>) {
+  constructor(
+    private readonly dataSource: DataSource,
+    data?: Partial<UserEntity>,
+  ) {
     super();
     Object.assign(this, data);
   }
@@ -69,8 +72,8 @@ export class UserEntity extends AbstractEntity {
   })
   deletedAt: Date;
 
-  @OneToMany(() => SessionEntity, (session) => session.user)
-  sessions?: SessionEntity[];
+  // @OneToMany(() => SessionEntity, (session) => session.user)
+  // sessions?: SessionEntity[];
 
   @OneToMany(() => PostEntity, (post) => post.user)
   posts: Relation<PostEntity[]>;
@@ -89,5 +92,10 @@ export class UserEntity extends AbstractEntity {
     if (this.password) {
       this.password = await hashPass(this.password);
     }
+  }
+
+  getUserTableName(): string {
+    const tableName = this.dataSource.getMetadata(UserEntity).tableName;
+    return tableName;
   }
 }

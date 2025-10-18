@@ -289,7 +289,7 @@ export class AuthService {
     } as Token;
   }
 
-  googleLogin(req) {
+  private async googleLogin(req) {
     if (!req.user) {
       return 'No user from google';
     }
