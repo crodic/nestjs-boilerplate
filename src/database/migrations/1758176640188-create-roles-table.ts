@@ -22,18 +22,9 @@ export class CreateRolesTable1758176640188 implements MigrationInterface {
     await queryRunner.query(`
       CREATE UNIQUE INDEX "UQ_roles_name" ON "roles" ("name") WHERE "deleted_at" IS NULL
     `);
-
-    await queryRunner.query(`
-      ALTER TABLE "users"
-      ADD CONSTRAINT "FK_user_role" FOREIGN KEY ("role_id") REFERENCES "roles"("id") ON DELETE NO ACTION ON UPDATE NO ACTION
-    `);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`
-      ALTER TABLE "users" DROP CONSTRAINT "FK_user_role"
-    `);
-
     await queryRunner.query(`
       DROP INDEX "public"."UQ_roles_name"
     `);

@@ -32,9 +32,9 @@ export class SessionEntity extends AbstractEntity {
   @Column({
     type: 'enum',
     enum: ESessionUserType,
-    enumName: 'sessions_user_type_enum',
+    enumName: 'sessions_user_enum',
     nullable: false,
     name: 'user_type',
   })
-  user_type: ESessionUserType;
+  userType: ESessionUserType;
 }

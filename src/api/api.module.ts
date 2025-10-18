@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ClsModule } from 'nestjs-cls';
+import { AdminUserModule } from './admin-user/admin-user.module';
 import { AuditLogModule } from './audit-log/audit-log.module';
 import { AuthModule } from './auth/auth.module';
 import { HealthModule } from './health/health.module';
@@ -21,6 +22,7 @@ import { UserModule } from './user/user.module';
     PostModule,
     AuditLogModule,
     RoleModule,
+    AdminUserModule,
   ],
 })
 export class ApiModule {}

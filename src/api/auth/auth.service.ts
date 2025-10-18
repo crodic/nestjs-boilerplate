@@ -3,7 +3,7 @@ import { Branded } from '@/common/types/types';
 import { AllConfigType } from '@/config/config.type';
 import { SYSTEM_USER_ID } from '@/constants/app.constant';
 import { CacheKey } from '@/constants/cache.constant';
-import { ESessionLoginScope } from '@/constants/entity.enum';
+import { ESessionUserType } from '@/constants/entity.enum';
 import { ErrorCode } from '@/constants/error-code.constant';
 import { JobName, QueueName } from '@/constants/job.constant';
 import { ValidationException } from '@/exceptions/validation.exception';
@@ -22,8 +22,9 @@ import { plainToInstance } from 'class-transformer';
 import crypto from 'crypto';
 import ms from 'ms';
 import { Repository } from 'typeorm';
+import { AdminUserEntity } from '../admin-user/entities/admin-user.entity';
 import { RoleEntity } from '../role/entities/role.entity';
-import { SessionEntity } from '../user/entities/session.entity';
+import { SessionEntity } from '../session/entities/session.entity';
 import { UserEntity } from '../user/entities/user.entity';
 import { LoginReqDto } from './dto/login.req.dto';
 import { LoginResDto } from './dto/login.res.dto';
@@ -50,6 +51,8 @@ export class AuthService {
     private readonly jwtService: JwtService,
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
+    @InjectRepository(AdminUserEntity)
+    private readonly adminUserRepository: Repository<AdminUserEntity>,
     @InjectQueue(QueueName.EMAIL)
     private readonly emailQueue: Queue<IEmailJob, any, string>,
     @Inject(CACHE_MANAGER)
@@ -64,12 +67,14 @@ export class AuthService {
   async signIn(dto: LoginReqDto): Promise<LoginResDto> {
     const { email, password } = dto;
     console.log({ email });
-    console.log(await this.userRepository.count());
-    const user = await this.userRepository.findOne({
+    console.log(await this.adminUserRepository.count());
+    const user = await this.adminUserRepository.findOne({
       where: { email },
     });
 
-    const all = await this.userRepository.find({ select: ['id', 'email'] });
+    const all = await this.adminUserRepository.find({
+      select: ['id', 'email'],
+    });
     console.log(all);
 
     console.log(user);
@@ -91,7 +96,7 @@ export class AuthService {
       userId: user.id,
       createdBy: SYSTEM_USER_ID,
       updatedBy: SYSTEM_USER_ID,
-      loginScope: ESessionLoginScope.PORTAL,
+      userType: ESessionUserType.ADMIN,
     });
     await session.save();
 
@@ -106,14 +111,13 @@ export class AuthService {
 
     return plainToInstance(LoginResDto, {
       userId: user.id,
-      scope: ESessionLoginScope.PORTAL,
       ...token,
     });
   }
 
   async register(dto: RegisterReqDto): Promise<RegisterResDto> {
     // Check if the user already exists
-    const isExistUser = await UserEntity.exists({
+    const isExistUser = await AdminUserEntity.exists({
       where: { email: dto.email },
     });
 
@@ -122,7 +126,7 @@ export class AuthService {
     }
 
     // Register user
-    const user = new UserEntity({
+    const user = new AdminUserEntity({
       email: dto.email,
       password: dto.password,
       createdBy: SYSTEM_USER_ID,
@@ -175,7 +179,7 @@ export class AuthService {
       throw new UnauthorizedException();
     }
 
-    const user = await this.userRepository.findOneOrFail({
+    const user = await this.adminUserRepository.findOneOrFail({
       where: { id: session.userId },
       select: ['id'],
     });
@@ -289,7 +293,7 @@ export class AuthService {
     } as Token;
   }
 
-  private async googleLogin(req) {
+  async googleLogin(req) {
     if (!req.user) {
       return 'No user from google';
     }

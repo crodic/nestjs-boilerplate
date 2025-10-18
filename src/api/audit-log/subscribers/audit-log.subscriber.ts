@@ -1,4 +1,4 @@
-import { SessionEntity } from '@/api/user/entities/session.entity';
+import { SessionEntity } from '@/api/session/entities/session.entity';
 import { ClsService } from 'nestjs-cls';
 import {
   DataSource,

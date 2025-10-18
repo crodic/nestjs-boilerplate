@@ -1,6 +1,5 @@
-import { PostEntity } from '@/api/post/entities/post.entity';
+import { RoleEntity } from '@/api/role/entities/role.entity';
 import { Uuid } from '@/common/types/common.type';
-import { EUserLoginProvider } from '@/constants/entity.enum';
 import { AbstractEntity } from '@/database/entities/abstract.entity';
 import { hashPassword as hashPass } from '@/utils/password.util';
 import {
@@ -10,47 +9,39 @@ import {
   DeleteDateColumn,
   Entity,
   Index,
-  OneToMany,
+  JoinColumn,
+  ManyToOne,
   PrimaryGeneratedColumn,
-  Relation,
 } from 'typeorm';
 
-@Entity('users')
-@Index('UQ_user_provider', ['provider', 'providerId'], {
-  where: '"provider_id" IS NOT NULL AND "deleted_at" IS NULL',
-  unique: true,
-})
-export class UserEntity extends AbstractEntity {
-  constructor(data?: Partial<UserEntity>) {
+@Entity('admin_users')
+export class AdminUserEntity extends AbstractEntity {
+  constructor(data?: Partial<AdminUserEntity>) {
     super();
     Object.assign(this, data);
   }
 
-  @PrimaryGeneratedColumn('uuid', { primaryKeyConstraintName: 'PK_user_id' })
+  @PrimaryGeneratedColumn('uuid', {
+    primaryKeyConstraintName: 'PK_admin_user_id',
+  })
   id!: Uuid;
 
   @Column({
     length: 50,
     nullable: true,
   })
-  @Index('UQ_user_username', {
+  @Index('UQ_admin_user_username', {
     where: '"deleted_at" IS NULL',
     unique: true,
   })
   username: string;
 
   @Column()
-  @Index('UQ_user_email', { where: '"deleted_at" IS NULL', unique: true })
+  @Index('UQ_admin_user_email', { where: '"deleted_at" IS NULL', unique: true })
   email!: string;
 
-  @Column({ nullable: true })
-  password?: string;
-
-  @Column({ default: EUserLoginProvider.LOCAL })
-  provider!: string;
-
-  @Column({ name: 'provider_id', nullable: true })
-  providerId?: string;
+  @Column()
+  password: string;
 
   @Column({ default: '' })
   bio?: string;
@@ -65,8 +56,13 @@ export class UserEntity extends AbstractEntity {
   })
   deletedAt: Date;
 
-  @OneToMany(() => PostEntity, (post) => post.user)
-  posts: Relation<PostEntity[]>;
+  @ManyToOne(() => RoleEntity, (role) => role.users, { eager: true })
+  @JoinColumn({
+    name: 'role_id',
+    referencedColumnName: 'id',
+    foreignKeyConstraintName: 'FK_admin_user_role',
+  })
+  role?: RoleEntity;
 
   @BeforeInsert()
   @BeforeUpdate()
