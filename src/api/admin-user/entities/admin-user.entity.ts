@@ -56,6 +56,12 @@ export class AdminUserEntity extends AbstractEntity {
   })
   deletedAt: Date;
 
+  @Column({
+    name: 'role_id',
+    type: 'uuid',
+  })
+  roleId: Uuid;
+
   @ManyToOne(() => RoleEntity, (role) => role.users, { eager: true })
   @JoinColumn({
     name: 'role_id',

@@ -5,7 +5,7 @@ import {
 } from '@/constants/app.constant';
 import { AppActions, AppSubjects } from '@/utils/permissions.constant';
 import { DataSource } from 'typeorm';
-import { Seeder } from 'typeorm-extension';
+import type { Seeder } from 'typeorm-extension';
 
 export class AdminSeeder1758099274256 implements Seeder {
   track = false;

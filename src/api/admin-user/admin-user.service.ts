@@ -3,16 +3,19 @@ import { CursorPaginatedDto } from '@/common/dto/cursor-pagination/paginated.dto
 import { OffsetPaginatedDto } from '@/common/dto/offset-pagination/paginated.dto';
 import { Uuid } from '@/common/types/common.type';
 import { SYSTEM_USER_ID } from '@/constants/app.constant';
+import { CacheKey } from '@/constants/cache.constant';
 import { ErrorCode } from '@/constants/error-code.constant';
 import { ValidationException } from '@/exceptions/validation.exception';
 import { buildPaginator } from '@/utils/cursor-pagination';
 import { paginate } from '@/utils/offset-pagination';
-import { Injectable, Logger } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import assert from 'assert';
+import { Cache } from 'cache-manager';
 import { plainToInstance } from 'class-transformer';
 import { ClsService } from 'nestjs-cls';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { AdminUserResDto } from './dto/admin-user.res.dto';
 import { CreateAdminUserReqDto } from './dto/create-admin-user.req.dto';
 import { ListAdminUserReqDto } from './dto/list-admin-user.req.dto';
@@ -28,7 +31,31 @@ export class AdminUserService {
     @InjectRepository(AdminUserEntity)
     private readonly adminUserRepository: Repository<AdminUserEntity>,
     private cls: ClsService,
+    @Inject(CACHE_MANAGER)
+    private readonly cacheManager: Cache,
   ) {}
+
+  async hasAdmin(): Promise<boolean> {
+    const cacheKey = CacheKey.SYSTEM_HAS_ADMIN;
+    const cached = await this.cacheManager.store.get<boolean>(cacheKey);
+    if (cached !== undefined) {
+      return cached;
+    }
+    const count = await this.adminUserRepository.count();
+    const hasAdmin = count > 0;
+
+    await this.cacheManager.set(cacheKey, hasAdmin, 60_000);
+
+    return hasAdmin;
+  }
+
+  async createWithManager(manager: EntityManager, data: CreateAdminUserReqDto) {
+    const repo = manager.getRepository(AdminUserEntity);
+    const adminUser = await repo.save(repo.create(data));
+    this.cacheManager.del(CacheKey.SYSTEM_HAS_ADMIN);
+
+    return adminUser;
+  }
 
   async create(dto: CreateAdminUserReqDto): Promise<AdminUserResDto> {
     const { username, email, password, bio, image } = dto;

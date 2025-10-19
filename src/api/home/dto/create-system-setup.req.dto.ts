@@ -1,6 +1,4 @@
-import { Uuid } from '@/common/types/common.type';
 import {
-  ClassField,
   EmailField,
   PasswordField,
   StringField,
@@ -9,7 +7,7 @@ import {
 import { lowerCaseTransformer } from '@/utils/transformers/lower-case.transformer';
 import { Transform } from 'class-transformer';
 
-export class CreateAdminUserReqDto {
+export class CreateSystemSetupReqDto {
   @StringField()
   @Transform(lowerCaseTransformer)
   username: string;
@@ -21,11 +19,5 @@ export class CreateAdminUserReqDto {
   password: string;
 
   @StringFieldOptional()
-  bio?: string;
-
-  @StringFieldOptional()
-  image?: string;
-
-  @ClassField(() => String)
-  roleId!: Uuid;
+  systemRoleName?: string;
 }

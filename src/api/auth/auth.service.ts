@@ -129,6 +129,7 @@ export class AuthService {
     const user = new AdminUserEntity({
       email: dto.email,
       password: dto.password,
+      roleId: dto.roleId,
       createdBy: SYSTEM_USER_ID,
       updatedBy: SYSTEM_USER_ID,
     });

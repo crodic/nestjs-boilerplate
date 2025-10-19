@@ -1,4 +1,10 @@
-import { EmailField, PasswordField } from '@/decorators/field.decorators';
+import { Uuid } from '@/common/types/common.type';
+import {
+  ClassField,
+  EmailField,
+  PasswordField,
+  StringFieldOptional,
+} from '@/decorators/field.decorators';
 
 export class RegisterReqDto {
   @EmailField()
@@ -6,4 +12,10 @@ export class RegisterReqDto {
 
   @PasswordField()
   password!: string;
+
+  @ClassField(() => String)
+  roleId!: Uuid;
+
+  @StringFieldOptional()
+  username?: string;
 }

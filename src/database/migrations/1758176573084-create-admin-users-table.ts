@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class CreateAdminUsersTable1760780182632 implements MigrationInterface {
-  name = 'CreateAdminUsersTable1760780182632';
+export class CreateAdminUsersTable1758176573084 implements MigrationInterface {
+  name = 'CreateAdminUsersTable1758176573084';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
@@ -13,7 +13,7 @@ export class CreateAdminUsersTable1760780182632 implements MigrationInterface {
           "bio" character varying NOT NULL DEFAULT '',
           "image" character varying NOT NULL DEFAULT '',
           "deleted_at" TIMESTAMP WITH TIME ZONE,
-          "role_id" uuid,
+          "role_id" uuid NOT NULL,
           "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
           "created_by" character varying NOT NULL,
           "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
@@ -31,19 +31,11 @@ export class CreateAdminUsersTable1760780182632 implements MigrationInterface {
       CREATE UNIQUE INDEX "UQ_admin_user_email" ON "admin_users" ("email")
       WHERE "deleted_at" IS NULL
     `);
-
-    await queryRunner.query(`
-      ALTER TABLE "admin_users"
-      ADD CONSTRAINT "FK_admin_user_role" FOREIGN KEY ("role_id") REFERENCES "roles"("id") ON DELETE NO ACTION ON UPDATE NO ACTION
-    `);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`DROP INDEX "public"."UQ_admin_user_email"`);
     await queryRunner.query(`DROP INDEX "public"."UQ_admin_user_username"`);
-    await queryRunner.query(`
-      ALTER TABLE "admin_users" DROP CONSTRAINT "FK_admin_user_role"
-    `);
     await queryRunner.query(`DROP TABLE "admin_users"`);
   }
 }

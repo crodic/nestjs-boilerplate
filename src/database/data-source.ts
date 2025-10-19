@@ -2,7 +2,7 @@ import 'reflect-metadata';
 import { DataSource, type DataSourceOptions } from 'typeorm';
 import type { SeederOptions } from 'typeorm-extension';
 
-const __dirname = process.cwd();
+const isProduction = process.env.NODE_ENV === 'production';
 
 export const AppDataSource = new DataSource({
   type: process.env.DATABASE_TYPE,
@@ -18,8 +18,10 @@ export const AppDataSource = new DataSource({
   dropSchema: false,
   keepConnectionAlive: true,
   logging: process.env.NODE_ENV !== 'production',
-  entities: [__dirname + '/../**/*.entity{.ts,.js}'],
-  migrations: [__dirname + '/migrations/**/*{.ts,.js}'],
+  entities: isProduction ? ['dist/**/*.entity.js'] : ['src/**/*.entity.ts'],
+  migrations: isProduction
+    ? ['dist/database/migrations/**/*.js']
+    : ['src/database/migrations/**/*.ts'],
   migrationsTableName: 'migrations',
   poolSize: process.env.DATABASE_MAX_CONNECTIONS
     ? parseInt(process.env.DATABASE_MAX_CONNECTIONS, 10)
@@ -34,7 +36,11 @@ export const AppDataSource = new DataSource({
           cert: process.env.DATABASE_CERT ?? undefined,
         }
       : undefined,
-  seeds: [__dirname + '/seeds/**/*{.ts,.js}'],
+  seeds: isProduction
+    ? ['dist/database/seeds/**/*.js']
+    : ['src/database/seeds/**/*.ts'],
   seedTracking: true,
-  factories: [__dirname + '/factories/**/*{.ts,.js}'],
+  factories: isProduction
+    ? ['dist/database/factories/**/*.js']
+    : ['src/database/factories/**/*.ts'],
 } as DataSourceOptions & SeederOptions);
