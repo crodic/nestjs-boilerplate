@@ -4,4 +4,5 @@ export enum CacheKey {
   PASSWORD_RESET = 'auth:token:%s:password', // %s: userId
   SYSTEM_HAS_ADMIN = 'system:hasAdmin',
   SYSTEM_HAS_ROLE = 'system:hasRole',
+  FORGOT_PASSWORD = 'auth:token:%s:forgot-password', // %s: userId
 }
