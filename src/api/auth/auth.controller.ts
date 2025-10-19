@@ -11,8 +11,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
-import { LoginReqDto } from './dto/login.req.dto';
-import { LoginResDto } from './dto/login.res.dto';
+import { ForgotPasswordReqDto } from './dto/forgot-password.req.dto';
 import { RefreshReqDto } from './dto/refresh.req.dto';
 import { RefreshResDto } from './dto/refresh.res.dto';
 import { RegisterReqDto } from './dto/register.req.dto';
@@ -36,10 +35,31 @@ export class AuthController {
     return await this.authService.signIn(userLogin);
   }
 
-  @ApiPublic()
-  @Post('email/register')
-  async register(@Body() dto: RegisterReqDto): Promise<RegisterResDto> {
-    return await this.authService.register(dto);
+  @ApiPublic({
+    type: LoginReqDto,
+    summary: 'User sign-in',
+  })
+  @Post('email/sign-in')
+  async signIn(@Body() userLoginDto: LoginReqDto): Promise<LoginResDto> {
+    return await this.authService.signIn(userLoginDto);
+  }
+
+  @ApiPublic({
+    type: RegisterReqDto,
+    summary: 'User sign-up',
+  })
+  @Post('email/sign-up')
+  async signUp(@Body() dto: RegisterReqDto): Promise<RegisterResDto> {
+    return await this.authService.signUp(dto);
+  }
+
+  @ApiPublic({
+    type: RefreshResDto,
+    summary: 'Refresh token',
+  })
+  @Post('refresh')
+  async refresh(@Body() dto: RefreshReqDto): Promise<RefreshResDto> {
+    return await this.authService.refreshToken(dto);
   }
 
   @ApiAuth({
@@ -62,8 +82,8 @@ export class AuthController {
 
   @ApiPublic()
   @Post('forgot-password')
-  async forgotPassword() {
-    return 'forgot-password';
+  async forgotPassword(@Body() dto: ForgotPasswordReqDto) {
+    return await this.authService.adminForgotPassword(dto);
   }
 
   @ApiPublic()

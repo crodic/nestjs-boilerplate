@@ -1,4 +1,7 @@
-import { IVerifyEmailJob } from '@/common/interfaces/job.interface';
+import {
+  IResetPasswordEmailJob,
+  IVerifyEmailJob,
+} from '@/common/interfaces/job.interface';
 import { Branded } from '@/common/types/types';
 import { AllConfigType } from '@/config/config.type';
 import { SYSTEM_USER_ID } from '@/constants/app.constant';
@@ -184,6 +187,33 @@ export class AuthService {
     });
   }
 
+  async refreshToken(dto: RefreshReqDto): Promise<RefreshResDto> {
+    const { sessionId, hash } = this.verifyRefreshToken(dto.refreshToken);
+    const session = await SessionEntity.findOneBy({ id: sessionId });
+
+    if (!session || session.hash !== hash) {
+      throw new UnauthorizedException();
+    }
+
+    const user = await this.userRepository.findOneOrFail({
+      where: { id: session.userId },
+      select: ['id'],
+    });
+
+    const newHash = crypto
+      .createHash('sha256')
+      .update(randomStringGenerator())
+      .digest('hex');
+
+    SessionEntity.update(session.id, { hash: newHash });
+
+    return await this.createToken({
+      id: user.id,
+      sessionId: session.id,
+      hash: newHash,
+    });
+  }
+
   async verifyAccessToken(token: string): Promise<JwtPayloadType> {
     let payload: JwtPayloadType;
     try {
@@ -204,6 +234,45 @@ export class AuthService {
     }
 
     return payload;
+  }
+
+  async adminForgotPassword(
+    dto: ForgotPasswordReqDto,
+  ): Promise<ForgotPasswordResDto> {
+    const admin = await this.adminUserRepository.findOneOrFail({
+      where: { email: dto.email },
+    });
+
+    if (!admin) {
+      throw new ValidationException(ErrorCode.E004);
+    }
+
+    const token = await this.createForgotToken({ id: admin.id });
+    const tokenExpiresIn = this.configService.getOrThrow(
+      'auth.forgotPasswordExpires',
+      {
+        infer: true,
+      },
+    );
+
+    await this.cacheManager.set(
+      createCacheKey(CacheKey.FORGOT_PASSWORD, admin.id),
+      token,
+      ms(tokenExpiresIn),
+    );
+
+    await this.emailQueue.add(
+      JobName.EMAIL_FORGOT_PASSWORD,
+      {
+        email: dto.email,
+        token,
+      } as IResetPasswordEmailJob,
+      { attempts: 3, backoff: { type: 'exponential', delay: 60000 } },
+    );
+
+    return plainToInstance(ForgotPasswordResDto, {
+      redirect: 'http://localhost:3000/v1/auth/reset-password?token=' + token,
+    });
   }
 
   private verifyRefreshToken(token: string): JwtRefreshPayloadType {
@@ -230,6 +299,21 @@ export class AuthService {
           infer: true,
         }),
         expiresIn: this.configService.getOrThrow('auth.confirmEmailExpires', {
+          infer: true,
+        }),
+      },
+    );
+  }
+  private async createForgotToken(data: { id: string }): Promise<string> {
+    return await this.jwtService.signAsync(
+      {
+        id: data.id,
+      },
+      {
+        secret: this.configService.getOrThrow('auth.forgotPasswordSecret', {
+          infer: true,
+        }),
+        expiresIn: this.configService.getOrThrow('auth.forgotPasswordExpires', {
           infer: true,
         }),
       },
