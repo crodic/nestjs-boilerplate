@@ -11,15 +11,19 @@ import {
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
-import { LoginReqDto } from './dto/login.req.dto';
-import { LoginResDto } from './dto/login.res.dto';
+import { AdminUserLoginReqDto } from './dto/admin-users/admin-user-login.req.dto';
+import { AdminUserLoginResDto } from './dto/admin-users/admin-user-login.res.dto';
+import { AdminUserRegisterReqDto } from './dto/admin-users/admin-user-register.req.dto';
+import { ForgotPasswordReqDto } from './dto/forgot-password.req.dto';
 import { RefreshReqDto } from './dto/refresh.req.dto';
 import { RefreshResDto } from './dto/refresh.res.dto';
-import { RegisterReqDto } from './dto/register.req.dto';
 import { RegisterResDto } from './dto/register.res.dto';
+import { LoginReqDto } from './dto/users/login.req.dto';
+import { LoginResDto } from './dto/users/login.res.dto';
+import { RegisterReqDto } from './dto/users/register.req.dto';
 import { JwtPayloadType } from './types/jwt-payload.type';
 
-@ApiTags('Auth')
+@ApiTags('Authentication')
 @Controller({
   path: 'auth',
   version: '1',
@@ -28,27 +32,52 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @ApiPublic({
-    type: LoginResDto,
-    summary: 'Sign in',
+    type: AdminUserLoginReqDto,
+    summary: 'Admin login',
   })
-  @Post('email/login')
-  async signIn(@Body() userLogin: LoginReqDto): Promise<LoginResDto> {
-    return await this.authService.signIn(userLogin);
+  @Post('admin/login')
+  async login(
+    @Body() adminUserLogin: AdminUserLoginReqDto,
+  ): Promise<AdminUserLoginResDto> {
+    return await this.authService.adminUserLogin(adminUserLogin);
   }
 
-  @ApiPublic()
-  @Post('email/register')
-  async register(@Body() dto: RegisterReqDto): Promise<RegisterResDto> {
-    return await this.authService.register(dto);
+  @ApiPublic({
+    type: AdminUserRegisterReqDto,
+    summary: 'Admin register',
+  })
+  @Post('admin/register')
+  async register(
+    @Body() dto: AdminUserRegisterReqDto,
+  ): Promise<RegisterResDto> {
+    return await this.authService.adminUserRegister(dto);
   }
 
-  @ApiAuth({
-    summary: 'Logout',
-    errorResponses: [400, 401, 403, 500],
+  @ApiPublic({
+    type: RefreshResDto,
+    summary: 'Admin refresh token',
   })
-  @Post('logout')
-  async logout(@CurrentUser() userToken: JwtPayloadType): Promise<void> {
-    await this.authService.logout(userToken);
+  @Post('admin/refresh')
+  async adminRefresh(@Body() dto: RefreshReqDto): Promise<RefreshResDto> {
+    return await this.authService.adminRefreshToken(dto);
+  }
+
+  @ApiPublic({
+    type: LoginReqDto,
+    summary: 'User sign-in',
+  })
+  @Post('email/sign-in')
+  async signIn(@Body() userLoginDto: LoginReqDto): Promise<LoginResDto> {
+    return await this.authService.signIn(userLoginDto);
+  }
+
+  @ApiPublic({
+    type: RegisterReqDto,
+    summary: 'User sign-up',
+  })
+  @Post('email/sign-up')
+  async signUp(@Body() dto: RegisterReqDto): Promise<RegisterResDto> {
+    return await this.authService.signUp(dto);
   }
 
   @ApiPublic({
@@ -60,10 +89,19 @@ export class AuthController {
     return await this.authService.refreshToken(dto);
   }
 
+  @ApiAuth({
+    summary: 'Logout',
+    errorResponses: [400, 401, 403, 500],
+  })
+  @Post('logout')
+  async logout(@CurrentUser() userToken: JwtPayloadType): Promise<void> {
+    await this.authService.logout(userToken);
+  }
+
   @ApiPublic()
   @Post('forgot-password')
-  async forgotPassword() {
-    return 'forgot-password';
+  async forgotPassword(@Body() dto: ForgotPasswordReqDto) {
+    return await this.authService.adminForgotPassword(dto);
   }
 
   @ApiPublic()
@@ -90,7 +128,7 @@ export class AuthController {
     return 'resend-verify-email';
   }
 
-  @Get()
+  @Get('google')
   @UseGuards(GoogleOAuthGuard)
   async googleAuth() {}
 
