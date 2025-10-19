@@ -37,7 +37,7 @@ export class AdminUserService {
 
   async hasAdmin(): Promise<boolean> {
     const cacheKey = CacheKey.SYSTEM_HAS_ADMIN;
-    const cached = await this.cacheManager.store.get<boolean>(cacheKey);
+    const cached = await this.cacheManager.get<boolean>(cacheKey);
     if (cached !== undefined) {
       return cached;
     }

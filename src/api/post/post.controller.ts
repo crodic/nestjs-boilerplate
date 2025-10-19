@@ -25,7 +25,7 @@ import { PostResDto } from './dto/post.res.dto';
 import { UpdatePostReqDto } from './dto/update-post.req.dto';
 import { PostService } from './post.service';
 
-@ApiTags('posts')
+@ApiTags('Posts')
 @Controller({
   path: 'posts',
   version: '1',

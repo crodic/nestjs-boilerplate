@@ -33,6 +33,8 @@ export class RoleService {
   async hasRole(): Promise<boolean> {
     const cacheKey = CacheKey.SYSTEM_HAS_ROLE;
     const cached = await this.cacheManager.get<boolean>(cacheKey);
+    console.log('Cache store type:', this.cacheManager.store.constructor.name);
+
     if (cached !== undefined) {
       return cached;
     }

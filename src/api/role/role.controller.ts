@@ -24,7 +24,7 @@ import { RoleResDto } from './dto/role.res.dto';
 import { UpdateRoleReqDto } from './dto/update-role.req.dto';
 import { RoleService } from './role.service';
 
-@ApiTags('roles')
+@ApiTags('Roles')
 @Controller({ path: 'roles', version: '1' })
 @UseGuards(PoliciesGuard)
 export class RoleController {

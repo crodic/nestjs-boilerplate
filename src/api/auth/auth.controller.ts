@@ -19,7 +19,7 @@ import { RegisterReqDto } from './dto/register.req.dto';
 import { RegisterResDto } from './dto/register.res.dto';
 import { JwtPayloadType } from './types/jwt-payload.type';
 
-@ApiTags('auth')
+@ApiTags('Auth')
 @Controller({
   path: 'auth',
   version: '1',
