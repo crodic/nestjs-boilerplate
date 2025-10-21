@@ -1,5 +1,4 @@
 import {
-  IEmailJob,
   IForgotPasswordEmailJob,
   IVerifyEmailJob,
 } from '@/common/interfaces/job.interface';
@@ -9,23 +8,17 @@ import { SYSTEM_USER_ID } from '@/constants/app.constant';
 import { CacheKey } from '@/constants/cache.constant';
 import { ESessionUserType } from '@/constants/entity.enum';
 import { ErrorCode } from '@/constants/error-code.constant';
-import { JobName, QueueName } from '@/constants/job.constant';
+import { JobName } from '@/constants/job.constant';
 import { ValidationException } from '@/exceptions/validation.exception';
 import { createCacheKey } from '@/utils/cache.util';
 import { verifyPassword } from '@/utils/password.util';
-import { InjectQueue } from '@nestjs/bullmq';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { randomStringGenerator } from '@nestjs/common/utils/random-string-generator.util';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Queue } from 'bullmq';
-import { Cache } from 'cache-manager';
 import { plainToInstance } from 'class-transformer';
 import crypto from 'crypto';
 import ms from 'ms';
-import { Repository } from 'typeorm';
 import { AdminUserEntity } from '../admin-user/entities/admin-user.entity';
 import { RoleEntity } from '../role/entities/role.entity';
 import { SessionEntity } from '../session/entities/session.entity';
@@ -58,16 +51,8 @@ type Token = Branded<
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly configService: ConfigService<AllConfigType>,
     private readonly jwtService: JwtService,
-    @InjectRepository(UserEntity)
-    private readonly userRepository: Repository<UserEntity>,
-    @InjectRepository(AdminUserEntity)
-    private readonly adminUserRepository: Repository<AdminUserEntity>,
-    @InjectQueue(QueueName.EMAIL)
-    private readonly emailQueue: Queue<IEmailJob, any, string>,
-    @Inject(CACHE_MANAGER)
-    private readonly cacheManager: Cache,
+    private readonly configService: ConfigService<AllConfigType>,
   ) {}
 
   /**
@@ -422,7 +407,7 @@ export class AuthService {
     });
   }
 
-  private verifyRefreshToken(token: string): JwtRefreshPayloadType {
+  protected verifyRefreshToken(token: string): JwtRefreshPayloadType {
     try {
       return this.jwtService.verify(token, {
         secret: this.configService.getOrThrow('auth.refreshSecret', {
@@ -434,7 +419,9 @@ export class AuthService {
     }
   }
 
-  private async createVerificationToken(data: { id: string }): Promise<string> {
+  protected async createVerificationToken(data: {
+    id: string;
+  }): Promise<string> {
     return await this.jwtService.signAsync(
       {
         id: data.id,
@@ -450,7 +437,7 @@ export class AuthService {
     );
   }
 
-  private verifyVerificationToken(token: string): JwtResetPasswordPayload {
+  protected verifyVerificationToken(token: string): JwtResetPasswordPayload {
     try {
       return this.jwtService.verify(token, {
         secret: this.configService.getOrThrow('auth.confirmEmailSecret', {
@@ -462,7 +449,7 @@ export class AuthService {
     }
   }
 
-  private async createForgotToken(data: { id: string }): Promise<string> {
+  protected async createForgotToken(data: { id: string }): Promise<string> {
     return await this.jwtService.signAsync(
       {
         id: data.id,
@@ -478,7 +465,7 @@ export class AuthService {
     );
   }
 
-  private verifyResetPasswordToken(token: string): JwtResetPasswordPayload {
+  protected verifyResetPasswordToken(token: string): JwtResetPasswordPayload {
     try {
       return this.jwtService.verify(token, {
         secret: this.configService.getOrThrow('auth.forgotPasswordSecret', {
@@ -490,7 +477,7 @@ export class AuthService {
     }
   }
 
-  private async createToken(data: {
+  protected async createToken(data: {
     id: string;
     sessionId: string;
     hash: string;
