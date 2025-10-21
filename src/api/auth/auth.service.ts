@@ -437,7 +437,7 @@ export class AuthService {
     );
   }
 
-  protected verifyVerificationToken(token: string): JwtResetPasswordPayload {
+  private verifyVerificationToken(token: string): JwtResetPasswordPayload {
     try {
       return this.jwtService.verify(token, {
         secret: this.configService.getOrThrow('auth.confirmEmailSecret', {
@@ -449,7 +449,7 @@ export class AuthService {
     }
   }
 
-  protected async createForgotToken(data: { id: string }): Promise<string> {
+  private async createForgotToken(data: { id: string }): Promise<string> {
     return await this.jwtService.signAsync(
       {
         id: data.id,
@@ -465,7 +465,7 @@ export class AuthService {
     );
   }
 
-  protected verifyResetPasswordToken(token: string): JwtResetPasswordPayload {
+  private verifyResetPasswordToken(token: string): JwtResetPasswordPayload {
     try {
       return this.jwtService.verify(token, {
         secret: this.configService.getOrThrow('auth.forgotPasswordSecret', {
@@ -477,7 +477,7 @@ export class AuthService {
     }
   }
 
-  protected async createToken(data: {
+  private async createToken(data: {
     id: string;
     sessionId: string;
     hash: string;
