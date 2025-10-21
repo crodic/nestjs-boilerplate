@@ -1,6 +1,6 @@
 import {
   IEmailJob,
-  IResetPasswordEmailJob,
+  IForgotPasswordEmailJob,
   IVerifyEmailJob,
 } from '@/common/interfaces/job.interface';
 import { Branded } from '@/common/types/types';
@@ -41,8 +41,10 @@ import { RegisterResDto } from './dto/register.res.dto';
 import { LoginReqDto } from './dto/users/login.req.dto';
 import { LoginResDto } from './dto/users/login.res.dto';
 import { RegisterReqDto } from './dto/users/register.req.dto';
+import { VerifyAccountResDto } from './dto/verify-account-res.dto';
 import { JwtPayloadType } from './types/jwt-payload.type';
 import { JwtRefreshPayloadType } from './types/jwt-refresh-payload.type';
+import { JwtResetPasswordPayload } from './types/jwt-reset-password-payload';
 
 type Token = Branded<
   {
@@ -336,6 +338,29 @@ export class AuthService {
     });
   }
 
+  async verifyAdminAccount(token: string): Promise<VerifyAccountResDto> {
+    const { id } = this.verifyVerificationToken(token);
+
+    const user = await this.adminUserRepository.findOneBy({ id });
+
+    if (!user) {
+      throw new UnauthorizedException();
+    }
+
+    user.verifiedAt = new Date();
+    await user.save();
+
+    await this.cacheManager.del(
+      createCacheKey(CacheKey.EMAIL_VERIFICATION, id),
+    );
+
+    return plainToInstance(VerifyAccountResDto, {
+      verified: true,
+      message: 'Your account has been verified',
+      userId: user.id,
+    });
+  }
+
   async verifyAccessToken(token: string): Promise<JwtPayloadType> {
     let payload: JwtPayloadType;
     try {
@@ -388,7 +413,7 @@ export class AuthService {
       {
         email: dto.email,
         token,
-      } as IResetPasswordEmailJob,
+      } as IForgotPasswordEmailJob,
       { attempts: 3, backoff: { type: 'exponential', delay: 60000 } },
     );
 
@@ -424,6 +449,19 @@ export class AuthService {
       },
     );
   }
+
+  private verifyVerificationToken(token: string): JwtResetPasswordPayload {
+    try {
+      return this.jwtService.verify(token, {
+        secret: this.configService.getOrThrow('auth.confirmEmailSecret', {
+          infer: true,
+        }),
+      });
+    } catch {
+      throw new UnauthorizedException();
+    }
+  }
+
   private async createForgotToken(data: { id: string }): Promise<string> {
     return await this.jwtService.signAsync(
       {
@@ -438,6 +476,18 @@ export class AuthService {
         }),
       },
     );
+  }
+
+  private verifyResetPasswordToken(token: string): JwtResetPasswordPayload {
+    try {
+      return this.jwtService.verify(token, {
+        secret: this.configService.getOrThrow('auth.forgotPasswordSecret', {
+          infer: true,
+        }),
+      });
+    } catch {
+      throw new UnauthorizedException();
+    }
   }
 
   private async createToken(data: {

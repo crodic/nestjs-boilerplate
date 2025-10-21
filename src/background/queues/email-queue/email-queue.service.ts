@@ -13,8 +13,8 @@ export class EmailQueueService {
     await this.mailService.sendEmailVerification(data.email, data.token);
   }
 
-  async sendEmailResetPassword(data: IVerifyEmailJob): Promise<void> {
-    this.logger.debug(`Sending email reset password to ${data.email}`);
-    await this.mailService.sendEmailResetPassword(data.email, data.token);
+  async sendEmailForgotPassword(data: IVerifyEmailJob): Promise<void> {
+    this.logger.debug(`Sending email forgot password to ${data.email}`);
+    await this.mailService.sendEmailForgotPassword(data.email, data.token);
   }
 }
