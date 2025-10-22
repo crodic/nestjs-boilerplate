@@ -6,4 +6,4 @@ export interface IVerifyEmailJob extends IEmailJob {
   token: string;
 }
 
-export type IForgotPasswordEmailJob = IVerifyEmailJob;
+export type IResetPasswordEmailJob = IVerifyEmailJob;

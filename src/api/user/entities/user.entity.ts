@@ -68,9 +68,6 @@ export class UserEntity extends AbstractEntity {
   @OneToMany(() => PostEntity, (post) => post.user)
   posts: Relation<PostEntity[]>;
 
-  @Column({ type: 'timestamptz', name: 'verified_at', nullable: true })
-  verifiedAt?: Date;
-
   @BeforeInsert()
   @BeforeUpdate()
   async hashPassword() {

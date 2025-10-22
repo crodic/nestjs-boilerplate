@@ -68,10 +68,7 @@ export class AdminUserEntity extends AbstractEntity {
     referencedColumnName: 'id',
     foreignKeyConstraintName: 'FK_admin_user_role',
   })
-  role: RoleEntity;
-
-  @Column({ type: 'timestamptz', name: 'verified_at', nullable: true })
-  verifiedAt?: Date;
+  role?: RoleEntity;
 
   @BeforeInsert()
   @BeforeUpdate()

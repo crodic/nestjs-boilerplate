@@ -25,7 +25,7 @@ export class MailService {
     });
   }
 
-  async sendEmailForgotPassword(email: string, token: string) {
+  async sendEmailResetPassword(email: string, token: string) {
     // Please replace the URL with your own frontend URL
     const url = `${this.configService.get('app.url', { infer: true })}/api/v1/auth/reset-password?token=${token}`;
 
