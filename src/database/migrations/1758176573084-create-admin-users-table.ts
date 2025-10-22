@@ -14,6 +14,7 @@ export class CreateAdminUsersTable1758176573084 implements MigrationInterface {
           "image" character varying NOT NULL DEFAULT '',
           "deleted_at" TIMESTAMP WITH TIME ZONE,
           "role_id" uuid NOT NULL,
+          "verified_at" TIMESTAMP WITH TIME ZONE,
           "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
           "created_by" character varying NOT NULL,
           "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
