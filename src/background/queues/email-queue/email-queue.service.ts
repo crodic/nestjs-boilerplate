@@ -12,9 +12,4 @@ export class EmailQueueService {
     this.logger.debug(`Sending email verification to ${data.email}`);
     await this.mailService.sendEmailVerification(data.email, data.token);
   }
-
-  async sendEmailResetPassword(data: IVerifyEmailJob): Promise<void> {
-    this.logger.debug(`Sending email reset password to ${data.email}`);
-    await this.mailService.sendEmailResetPassword(data.email, data.token);
-  }
 }

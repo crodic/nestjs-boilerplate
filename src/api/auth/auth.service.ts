@@ -1,7 +1,4 @@
-import {
-  IResetPasswordEmailJob,
-  IVerifyEmailJob,
-} from '@/common/interfaces/job.interface';
+import { IVerifyEmailJob } from '@/common/interfaces/job.interface';
 import { Branded } from '@/common/types/types';
 import { AllConfigType } from '@/config/config.type';
 import { SYSTEM_USER_ID } from '@/constants/app.constant';
@@ -22,18 +19,12 @@ import ms from 'ms';
 import { AdminUserEntity } from '../admin-user/entities/admin-user.entity';
 import { RoleEntity } from '../role/entities/role.entity';
 import { SessionEntity } from '../session/entities/session.entity';
-import { UserEntity } from '../user/entities/user.entity';
-import { AdminUserLoginReqDto } from './dto/admin-users/admin-user-login.req.dto';
-import { AdminUserLoginResDto } from './dto/admin-users/admin-user-login.res.dto';
-import { AdminUserRegisterReqDto } from './dto/admin-users/admin-user-register.req.dto';
-import { ForgotPasswordReqDto } from './dto/forgot-password.req.dto';
-import { ForgotPasswordResDto } from './dto/forgot-password.res.dto';
+import { LoginReqDto } from './dto/login.req.dto';
+import { LoginResDto } from './dto/login.res.dto';
 import { RefreshReqDto } from './dto/refresh.req.dto';
 import { RefreshResDto } from './dto/refresh.res.dto';
+import { RegisterReqDto } from './dto/register.req.dto';
 import { RegisterResDto } from './dto/register.res.dto';
-import { LoginReqDto } from './dto/users/login.req.dto';
-import { LoginResDto } from './dto/users/login.res.dto';
-import { RegisterReqDto } from './dto/users/register.req.dto';
 import { JwtPayloadType } from './types/jwt-payload.type';
 import { JwtRefreshPayloadType } from './types/jwt-refresh-payload.type';
 
@@ -55,12 +46,10 @@ export class AuthService {
 
   /**
    * Sign in user
-   * @param dto AdminUserLoginReqDto
-   * @returns AdminUserLoginResDto
+   * @param dto LoginReqDto
+   * @returns LoginResDto
    */
-  async adminUserLogin(
-    dto: AdminUserLoginReqDto,
-  ): Promise<AdminUserLoginResDto> {
+  async signIn(dto: LoginReqDto): Promise<LoginResDto> {
     const { email, password } = dto;
     console.log({ email });
     console.log(await this.adminUserRepository.count());
@@ -105,15 +94,13 @@ export class AuthService {
 
     console.log(token);
 
-    return plainToInstance(AdminUserLoginResDto, {
+    return plainToInstance(LoginResDto, {
       userId: user.id,
       ...token,
     });
   }
 
-  async adminUserRegister(
-    dto: AdminUserRegisterReqDto,
-  ): Promise<RegisterResDto> {
+  async register(dto: RegisterReqDto): Promise<RegisterResDto> {
     // Check if the user already exists
     const isExistUser = await AdminUserEntity.exists({
       where: { email: dto.email },
@@ -161,103 +148,6 @@ export class AuthService {
     });
   }
 
-  async signIn(dto: LoginReqDto): Promise<LoginResDto> {
-    const { email, password } = dto;
-    console.log({ email });
-    console.log(await this.userRepository.count());
-    const user = await this.userRepository.findOne({
-      where: { email },
-    });
-
-    const all = await this.userRepository.find({
-      select: ['id', 'email'],
-    });
-    console.log(all);
-
-    console.log(user);
-
-    const isPasswordValid =
-      user && (await verifyPassword(password, user.password));
-
-    if (!isPasswordValid) {
-      throw new UnauthorizedException();
-    }
-
-    const hash = crypto
-      .createHash('sha256')
-      .update(randomStringGenerator())
-      .digest('hex');
-
-    const session = new SessionEntity({
-      hash,
-      userId: user.id,
-      createdBy: SYSTEM_USER_ID,
-      updatedBy: SYSTEM_USER_ID,
-      userType: ESessionUserType.USER,
-    });
-    await session.save();
-
-    const token = await this.createToken({
-      id: user.id,
-      sessionId: session.id,
-      hash,
-    });
-
-    console.log(token);
-
-    return plainToInstance(LoginResDto, {
-      userId: user.id,
-      ...token,
-    });
-  }
-
-  async signUp(dto: RegisterReqDto): Promise<RegisterResDto> {
-    // Check if the user already exists
-    const isExistUser = await AdminUserEntity.exists({
-      where: { email: dto.email },
-    });
-
-    if (isExistUser) {
-      throw new ValidationException(ErrorCode.E003);
-    }
-
-    // Register user
-    const user = new UserEntity({
-      email: dto.email,
-      password: dto.password,
-      createdBy: SYSTEM_USER_ID,
-      updatedBy: SYSTEM_USER_ID,
-    });
-
-    await user.save();
-
-    // Send email verification
-    const token = await this.createVerificationToken({ id: user.id });
-    const tokenExpiresIn = this.configService.getOrThrow(
-      'auth.confirmEmailExpires',
-      {
-        infer: true,
-      },
-    );
-    await this.cacheManager.set(
-      createCacheKey(CacheKey.EMAIL_VERIFICATION, user.id),
-      token,
-      ms(tokenExpiresIn),
-    );
-    await this.emailQueue.add(
-      JobName.EMAIL_VERIFICATION,
-      {
-        email: dto.email,
-        token,
-      } as IVerifyEmailJob,
-      { attempts: 3, backoff: { type: 'exponential', delay: 60000 } },
-    );
-
-    return plainToInstance(RegisterResDto, {
-      userId: user.id,
-    });
-  }
-
   async logout(userToken: JwtPayloadType): Promise<void> {
     await this.cacheManager.store.set<boolean>(
       createCacheKey(CacheKey.SESSION_BLACKLIST, userToken.sessionId),
@@ -265,33 +155,6 @@ export class AuthService {
       userToken.exp * 1000 - Date.now(),
     );
     await SessionEntity.delete(userToken.sessionId);
-  }
-
-  async adminRefreshToken(dto: RefreshReqDto): Promise<RefreshResDto> {
-    const { sessionId, hash } = this.verifyRefreshToken(dto.refreshToken);
-    const session = await SessionEntity.findOneBy({ id: sessionId });
-
-    if (!session || session.hash !== hash) {
-      throw new UnauthorizedException();
-    }
-
-    const user = await this.adminUserRepository.findOneOrFail({
-      where: { id: session.userId },
-      select: ['id'],
-    });
-
-    const newHash = crypto
-      .createHash('sha256')
-      .update(randomStringGenerator())
-      .digest('hex');
-
-    SessionEntity.update(session.id, { hash: newHash });
-
-    return await this.createToken({
-      id: user.id,
-      sessionId: session.id,
-      hash: newHash,
-    });
   }
 
   async refreshToken(dto: RefreshReqDto): Promise<RefreshResDto> {
@@ -302,7 +165,7 @@ export class AuthService {
       throw new UnauthorizedException();
     }
 
-    const user = await this.userRepository.findOneOrFail({
+    const user = await this.adminUserRepository.findOneOrFail({
       where: { id: session.userId },
       select: ['id'],
     });
@@ -343,46 +206,7 @@ export class AuthService {
     return payload;
   }
 
-  async adminForgotPassword(
-    dto: ForgotPasswordReqDto,
-  ): Promise<ForgotPasswordResDto> {
-    const admin = await this.adminUserRepository.findOneOrFail({
-      where: { email: dto.email },
-    });
-
-    if (!admin) {
-      throw new ValidationException(ErrorCode.E004);
-    }
-
-    const token = await this.createForgotToken({ id: admin.id });
-    const tokenExpiresIn = this.configService.getOrThrow(
-      'auth.forgotPasswordExpires',
-      {
-        infer: true,
-      },
-    );
-
-    await this.cacheManager.set(
-      createCacheKey(CacheKey.FORGOT_PASSWORD, admin.id),
-      token,
-      ms(tokenExpiresIn),
-    );
-
-    await this.emailQueue.add(
-      JobName.EMAIL_FORGOT_PASSWORD,
-      {
-        email: dto.email,
-        token,
-      } as IResetPasswordEmailJob,
-      { attempts: 3, backoff: { type: 'exponential', delay: 60000 } },
-    );
-
-    return plainToInstance(ForgotPasswordResDto, {
-      redirect: 'http://localhost:3000/v1/auth/reset-password?token=' + token,
-    });
-  }
-
-  protected verifyRefreshToken(token: string): JwtRefreshPayloadType {
+  private verifyRefreshToken(token: string): JwtRefreshPayloadType {
     try {
       return this.jwtService.verify(token, {
         secret: this.configService.getOrThrow('auth.refreshSecret', {
@@ -406,21 +230,6 @@ export class AuthService {
           infer: true,
         }),
         expiresIn: this.configService.getOrThrow('auth.confirmEmailExpires', {
-          infer: true,
-        }),
-      },
-    );
-  }
-  private async createForgotToken(data: { id: string }): Promise<string> {
-    return await this.jwtService.signAsync(
-      {
-        id: data.id,
-      },
-      {
-        secret: this.configService.getOrThrow('auth.forgotPasswordSecret', {
-          infer: true,
-        }),
-        expiresIn: this.configService.getOrThrow('auth.forgotPasswordExpires', {
           infer: true,
         }),
       },
