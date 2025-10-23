@@ -6,6 +6,7 @@ import {
   Controller,
   Get,
   Post,
+  Query,
   Request,
   UseGuards,
 } from '@nestjs/common';
@@ -15,6 +16,7 @@ import { AdminUserLoginReqDto } from './dto/admin-users/admin-user-login.req.dto
 import { AdminUserLoginResDto } from './dto/admin-users/admin-user-login.res.dto';
 import { AdminUserRegisterReqDto } from './dto/admin-users/admin-user-register.req.dto';
 import { ForgotPasswordReqDto } from './dto/forgot-password.req.dto';
+import { ForgotPasswordResDto } from './dto/forgot-password.res.dto';
 import { RefreshReqDto } from './dto/refresh.req.dto';
 import { RefreshResDto } from './dto/refresh.res.dto';
 import { RegisterResDto } from './dto/register.res.dto';
@@ -62,6 +64,26 @@ export class AuthController {
     return await this.authService.adminRefreshToken(dto);
   }
 
+  @ApiPublic()
+  @Post('admin/forgot-password')
+  async adminForgotPassword(
+    @Body() dto: ForgotPasswordReqDto,
+  ): Promise<ForgotPasswordResDto> {
+    return await this.authService.adminForgotPassword(dto);
+  }
+
+  @ApiPublic()
+  @Get('admin/verify')
+  async adminVerifyEmail(@Query() token: string) {
+    return await this.authService.verifyAdminAccount(token);
+  }
+
+  @ApiPublic()
+  @Post('admin/verify/resend')
+  async adminResendVerifyEmail() {
+    return 'resend-verify-email';
+  }
+
   @ApiPublic({
     type: LoginReqDto,
     summary: 'User sign-in',
@@ -100,7 +122,9 @@ export class AuthController {
 
   @ApiPublic()
   @Post('forgot-password')
-  async forgotPassword(@Body() dto: ForgotPasswordReqDto) {
+  async forgotPassword(
+    @Body() dto: ForgotPasswordReqDto,
+  ): Promise<ForgotPasswordResDto> {
     return await this.authService.adminForgotPassword(dto);
   }
 
@@ -118,8 +142,8 @@ export class AuthController {
 
   @ApiPublic()
   @Get('verify/email')
-  async verifyEmail() {
-    return 'verify-email';
+  async verifyEmail(@Query() token: string) {
+    return await this.authService.verifyAdminAccount(token);
   }
 
   @ApiPublic()

@@ -1,8 +1,4 @@
-import {
-  IEmailJob,
-  IResetPasswordEmailJob,
-  IVerifyEmailJob,
-} from '@/common/interfaces/job.interface';
+import { IEmailJob, IVerifyEmailJob } from '@/common/interfaces/job.interface';
 import { Branded } from '@/common/types/types';
 import { AllConfigType } from '@/config/config.type';
 import { SYSTEM_USER_ID } from '@/constants/app.constant';
@@ -29,6 +25,7 @@ import { AdminUserEntity } from '../admin-user/entities/admin-user.entity';
 import { RoleEntity } from '../role/entities/role.entity';
 import { SessionEntity } from '../session/entities/session.entity';
 import { UserEntity } from '../user/entities/user.entity';
+import { IForgotPasswordEmailJob } from './../../common/interfaces/job.interface';
 import { AdminUserLoginReqDto } from './dto/admin-users/admin-user-login.req.dto';
 import { AdminUserLoginResDto } from './dto/admin-users/admin-user-login.res.dto';
 import { AdminUserRegisterReqDto } from './dto/admin-users/admin-user-register.req.dto';
@@ -40,6 +37,8 @@ import { RegisterResDto } from './dto/register.res.dto';
 import { LoginReqDto } from './dto/users/login.req.dto';
 import { LoginResDto } from './dto/users/login.res.dto';
 import { RegisterReqDto } from './dto/users/register.req.dto';
+import { VerifyAccountResDto } from './dto/verify-account.req.dto';
+import { JwtForgotPasswordPayload } from './types/jwt-forgot-password-payload';
 import { JwtPayloadType } from './types/jwt-payload.type';
 import { JwtRefreshPayloadType } from './types/jwt-refresh-payload.type';
 
@@ -171,6 +170,29 @@ export class AuthService {
     );
 
     return plainToInstance(RegisterResDto, {
+      userId: user.id,
+    });
+  }
+
+  async verifyAdminAccount(token: string): Promise<VerifyAccountResDto> {
+    const { id } = this.verifyVerificationToken(token);
+
+    const user = await this.adminUserRepository.findOneBy({ id });
+
+    if (!user) {
+      throw new UnauthorizedException();
+    }
+
+    user.verifiedAt = new Date();
+    await user.save();
+
+    await this.cacheManager.del(
+      createCacheKey(CacheKey.EMAIL_VERIFICATION, id),
+    );
+
+    return plainToInstance(VerifyAccountResDto, {
+      verified: true,
+      message: 'Your account has been verified',
       userId: user.id,
     });
   }
@@ -387,7 +409,7 @@ export class AuthService {
       {
         email: dto.email,
         token,
-      } as IResetPasswordEmailJob,
+      } as IForgotPasswordEmailJob,
       { attempts: 3, backoff: { type: 'exponential', delay: 60000 } },
     );
 
@@ -408,9 +430,7 @@ export class AuthService {
     }
   }
 
-  protected async createVerificationToken(data: {
-    id: string;
-  }): Promise<string> {
+  private async createVerificationToken(data: { id: string }): Promise<string> {
     return await this.jwtService.signAsync(
       {
         id: data.id,
@@ -484,6 +504,18 @@ export class AuthService {
       refreshToken,
       tokenExpires,
     } as Token;
+  }
+
+  private verifyVerificationToken(token: string): JwtForgotPasswordPayload {
+    try {
+      return this.jwtService.verify(token, {
+        secret: this.configService.getOrThrow('auth.confirmEmailSecret', {
+          infer: true,
+        }),
+      });
+    } catch {
+      throw new UnauthorizedException();
+    }
   }
 
   async googleLogin(req) {

@@ -1,4 +1,7 @@
-import { IVerifyEmailJob } from '@/common/interfaces/job.interface';
+import {
+  IForgotPasswordEmailJob,
+  IVerifyEmailJob,
+} from '@/common/interfaces/job.interface';
 import { MailService } from '@/mail/mail.service';
 import { Injectable, Logger } from '@nestjs/common';
 
@@ -13,8 +16,8 @@ export class EmailQueueService {
     await this.mailService.sendEmailVerification(data.email, data.token);
   }
 
-  async sendEmailResetPassword(data: IVerifyEmailJob): Promise<void> {
-    this.logger.debug(`Sending email reset password to ${data.email}`);
-    await this.mailService.sendEmailResetPassword(data.email, data.token);
+  async sendEmailForgotPassword(data: IForgotPasswordEmailJob): Promise<void> {
+    this.logger.debug(`Sending email forgot password to ${data.email}`);
+    await this.mailService.sendEmailForgotPassword(data.email, data.token);
   }
 }
