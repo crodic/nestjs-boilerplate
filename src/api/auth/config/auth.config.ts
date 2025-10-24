@@ -40,15 +40,6 @@ class EnvironmentVariablesValidator {
   @IsNotEmpty()
   @IsMs()
   AUTH_CONFIRM_EMAIL_TOKEN_EXPIRES_IN: string;
-
-  @IsString()
-  @IsNotEmpty()
-  AUTH_FORGOT_PASSWORD_SECRET: string;
-
-  @IsString()
-  @IsNotEmpty()
-  @IsMs()
-  AUTH_FORGOT_PASSWORD_TOKEN_EXPIRES_IN: string;
 }
 
 export default registerAs<AuthConfig>('auth', () => {
@@ -64,7 +55,5 @@ export default registerAs<AuthConfig>('auth', () => {
     forgotExpires: process.env.AUTH_FORGOT_TOKEN_EXPIRES_IN,
     confirmEmailSecret: process.env.AUTH_CONFIRM_EMAIL_SECRET,
     confirmEmailExpires: process.env.AUTH_CONFIRM_EMAIL_TOKEN_EXPIRES_IN,
-    forgotPasswordSecret: process.env.AUTH_FORGOT_PASSWORD_SECRET,
-    forgotPasswordExpires: process.env.AUTH_FORGOT_PASSWORD_TOKEN_EXPIRES_IN,
   };
 });

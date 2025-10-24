@@ -391,12 +391,9 @@ export class AuthService {
     }
 
     const token = await this.createForgotToken({ id: admin.id });
-    const tokenExpiresIn = this.configService.getOrThrow(
-      'auth.forgotPasswordExpires',
-      {
-        infer: true,
-      },
-    );
+    const tokenExpiresIn = this.configService.getOrThrow('auth.forgotSecret', {
+      infer: true,
+    });
 
     await this.cacheManager.set(
       createCacheKey(CacheKey.FORGOT_PASSWORD, admin.id),
@@ -451,10 +448,10 @@ export class AuthService {
         id: data.id,
       },
       {
-        secret: this.configService.getOrThrow('auth.forgotPasswordSecret', {
+        secret: this.configService.getOrThrow('auth.forgotSecret', {
           infer: true,
         }),
-        expiresIn: this.configService.getOrThrow('auth.forgotPasswordExpires', {
+        expiresIn: this.configService.getOrThrow('auth.forgotExpires', {
           infer: true,
         }),
       },
