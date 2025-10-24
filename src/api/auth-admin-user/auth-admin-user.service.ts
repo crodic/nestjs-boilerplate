@@ -162,6 +162,15 @@ export class AuthAdminUserService {
     });
   }
 
+  async logout(userToken: JwtPayloadType): Promise<void> {
+    await this.cacheManager.store.set<boolean>(
+      createCacheKey(CacheKey.SESSION_BLACKLIST, userToken.sessionId),
+      true,
+      userToken.exp * 1000 - Date.now(),
+    );
+    await SessionEntity.delete(userToken.sessionId);
+  }
+
   async refreshToken(dto: RefreshReqDto): Promise<RefreshResDto> {
     const { sessionId, hash } = this.verifyRefreshToken(dto.refreshToken);
     const session = await SessionEntity.findOneBy({ id: sessionId });

@@ -1,4 +1,5 @@
-import { ApiPublic } from '@/decorators/http.decorators';
+import { CurrentUser } from '@/decorators/current-user.decorator';
+import { ApiAuth, ApiPublic } from '@/decorators/http.decorators';
 import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { AuthAdminUserService } from './auth-admin-user.service';
@@ -10,6 +11,7 @@ import { ForgotPasswordReqDto } from './dto/forgot-password.req.dto';
 import { ForgotPasswordResDto } from './dto/forgot-password.res.dto';
 import { RefreshReqDto } from './dto/refresh.req.dto';
 import { RefreshResDto } from './dto/refresh.res.dto';
+import { JwtPayloadType } from './types/jwt-payload.type';
 
 @ApiTags('Authentication')
 @Controller({
@@ -39,6 +41,15 @@ export class AuthAdminUserController {
     @Body() dto: AdminUserRegisterReqDto,
   ): Promise<AdminUserRegisterResDto> {
     return await this.authAdminUserService.signUp(dto);
+  }
+
+  @ApiAuth({
+    summary: 'Logout',
+    errorResponses: [400, 401, 403, 500],
+  })
+  @Post('logout')
+  async logout(@CurrentUser() userToken: JwtPayloadType): Promise<void> {
+    await this.authAdminUserService.logout(userToken);
   }
 
   @ApiPublic({

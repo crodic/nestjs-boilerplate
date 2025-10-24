@@ -4,7 +4,8 @@ import { ClsModule } from 'nestjs-cls';
 import { join } from 'path';
 import { AdminUserModule } from './admin-user/admin-user.module';
 import { AuditLogModule } from './audit-log/audit-log.module';
-import { AuthAdminUserController } from './auth-admin-user/auth-admin-user.controller';
+import { AuthAdminUserModule } from './auth-admin-user/auth-admin-user.module';
+import { AuthUserModule } from './auth-user/auth-user.module';
 import { AuthModule } from './auth/auth.module';
 import { FileUploadModule } from './file-upload/file-upload.module';
 import { HealthModule } from './health/health.module';
@@ -32,7 +33,8 @@ import { UserModule } from './user/user.module';
     RoleModule,
     AdminUserModule,
     FileUploadModule,
-    AuthAdminUserController,
+    AuthAdminUserModule,
+    AuthUserModule,
   ],
 })
 export class ApiModule {}
