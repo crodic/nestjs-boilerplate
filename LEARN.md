@@ -42,3 +42,15 @@ export class AppController {
   constructor(private readonly authService: AuthService) {}
 }
 ```
+
+# 1. Tạo thư mục lưu dữ liệu upload
+
+sudo mkdir -p /data/pictshareuploads
+
+# 2. Cấp quyền cho user 1000 (theo image pictshare)
+
+sudo chown 1000 -R /data/pictshareuploads
+
+# 3. Chạy docker compose
+
+sudo docker compose up -d
