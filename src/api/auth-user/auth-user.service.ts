@@ -1,4 +1,18 @@
-import { Injectable } from '@nestjs/common';
+import { IEmailJob } from '@/common/interfaces/job.interface';
+import { AllConfigType } from '@/config/config.type';
+import { QueueName } from '@/constants/job.constant';
+import { verifyPassword } from '@/utils/password.util';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Queue } from 'bullmq';
+import { Repository } from 'typeorm';
+import { UserEntity } from '../user/entities/user.entity';
+import { LoginReqDto } from './dto/login.req.dto';
+import { LoginResDto } from './dto/login.res.dto';
 
 @Injectable()
 export class AuthUserService {
@@ -7,8 +21,6 @@ export class AuthUserService {
     private readonly jwtService: JwtService,
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
-    @InjectRepository(AdminUserEntity)
-    private readonly adminUserRepository: Repository<AdminUserEntity>,
     @InjectQueue(QueueName.EMAIL)
     private readonly emailQueue: Queue<IEmailJob, any, string>,
     @Inject(CACHE_MANAGER)
