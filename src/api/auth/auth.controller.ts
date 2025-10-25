@@ -33,6 +33,7 @@ import { JwtPayloadType } from './types/jwt-payload.type';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  //? ADMIN SECTION
   @ApiPublic({
     type: AdminUserLoginReqDto,
     summary: 'Admin login',
@@ -84,6 +85,7 @@ export class AuthController {
     return 'resend-verify-email';
   }
 
+  //? USER SECTION
   @ApiPublic({
     type: LoginReqDto,
     summary: 'User sign-in',

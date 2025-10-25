@@ -1,4 +1,8 @@
-import { IEmailJob, IVerifyEmailJob } from '@/common/interfaces/job.interface';
+import {
+  IEmailJob,
+  IForgotPasswordEmailJob,
+  IVerifyEmailJob,
+} from '@/common/interfaces/job.interface';
 import { Branded } from '@/common/types/types';
 import { AllConfigType } from '@/config/config.type';
 import { SYSTEM_USER_ID } from '@/constants/app.constant';
@@ -25,7 +29,6 @@ import { AdminUserEntity } from '../admin-user/entities/admin-user.entity';
 import { RoleEntity } from '../role/entities/role.entity';
 import { SessionEntity } from '../session/entities/session.entity';
 import { UserEntity } from '../user/entities/user.entity';
-import { IForgotPasswordEmailJob } from './../../common/interfaces/job.interface';
 import { AdminUserLoginReqDto } from './dto/admin-users/admin-user-login.req.dto';
 import { AdminUserLoginResDto } from './dto/admin-users/admin-user-login.res.dto';
 import { AdminUserRegisterReqDto } from './dto/admin-users/admin-user-register.req.dto';
@@ -66,11 +69,7 @@ export class AuthService {
     private readonly cacheManager: Cache,
   ) {}
 
-  /**
-   * Sign in user
-   * @param dto AdminUserLoginReqDto
-   * @returns AdminUserLoginResDto
-   */
+  //? ADMIN SECTION
   async adminUserLogin(
     dto: AdminUserLoginReqDto,
   ): Promise<AdminUserLoginResDto> {
@@ -197,6 +196,73 @@ export class AuthService {
     });
   }
 
+  async adminRefreshToken(dto: RefreshReqDto): Promise<RefreshResDto> {
+    const { sessionId, hash } = this.verifyRefreshToken(dto.refreshToken);
+    const session = await SessionEntity.findOneBy({ id: sessionId });
+
+    if (!session || session.hash !== hash) {
+      throw new UnauthorizedException();
+    }
+
+    const user = await this.adminUserRepository.findOneOrFail({
+      where: { id: session.userId },
+      select: ['id'],
+    });
+
+    const newHash = crypto
+      .createHash('sha256')
+      .update(randomStringGenerator())
+      .digest('hex');
+
+    SessionEntity.update(session.id, { hash: newHash });
+
+    return await this.createToken({
+      id: user.id,
+      sessionId: session.id,
+      hash: newHash,
+    });
+  }
+
+  async adminForgotPassword(
+    dto: ForgotPasswordReqDto,
+  ): Promise<ForgotPasswordResDto> {
+    const admin = await this.adminUserRepository.findOneOrFail({
+      where: { email: dto.email },
+    });
+
+    if (!admin) {
+      throw new ValidationException(ErrorCode.E004);
+    }
+
+    const token = await this.createForgotToken({ id: admin.id });
+    const tokenExpiresIn = this.configService.getOrThrow(
+      'auth.forgotPasswordExpires',
+      {
+        infer: true,
+      },
+    );
+
+    await this.cacheManager.set(
+      createCacheKey(CacheKey.FORGOT_PASSWORD, admin.id),
+      token,
+      ms(tokenExpiresIn),
+    );
+
+    await this.emailQueue.add(
+      JobName.EMAIL_FORGOT_PASSWORD,
+      {
+        email: dto.email,
+        token,
+      } as IForgotPasswordEmailJob,
+      { attempts: 3, backoff: { type: 'exponential', delay: 60000 } },
+    );
+
+    return plainToInstance(ForgotPasswordResDto, {
+      redirect: 'http://localhost:3000/v1/auth/reset-password?token=' + token,
+    });
+  }
+
+  //? USER SECTION
   async signIn(dto: LoginReqDto): Promise<LoginResDto> {
     const { email, password } = dto;
     console.log({ email });
@@ -303,33 +369,6 @@ export class AuthService {
     await SessionEntity.delete(userToken.sessionId);
   }
 
-  async adminRefreshToken(dto: RefreshReqDto): Promise<RefreshResDto> {
-    const { sessionId, hash } = this.verifyRefreshToken(dto.refreshToken);
-    const session = await SessionEntity.findOneBy({ id: sessionId });
-
-    if (!session || session.hash !== hash) {
-      throw new UnauthorizedException();
-    }
-
-    const user = await this.adminUserRepository.findOneOrFail({
-      where: { id: session.userId },
-      select: ['id'],
-    });
-
-    const newHash = crypto
-      .createHash('sha256')
-      .update(randomStringGenerator())
-      .digest('hex');
-
-    SessionEntity.update(session.id, { hash: newHash });
-
-    return await this.createToken({
-      id: user.id,
-      sessionId: session.id,
-      hash: newHash,
-    });
-  }
-
   async refreshToken(dto: RefreshReqDto): Promise<RefreshResDto> {
     const { sessionId, hash } = this.verifyRefreshToken(dto.refreshToken);
     const session = await SessionEntity.findOneBy({ id: sessionId });
@@ -379,45 +418,7 @@ export class AuthService {
     return payload;
   }
 
-  async adminForgotPassword(
-    dto: ForgotPasswordReqDto,
-  ): Promise<ForgotPasswordResDto> {
-    const admin = await this.adminUserRepository.findOneOrFail({
-      where: { email: dto.email },
-    });
-
-    if (!admin) {
-      throw new ValidationException(ErrorCode.E004);
-    }
-
-    const token = await this.createForgotToken({ id: admin.id });
-    const tokenExpiresIn = this.configService.getOrThrow(
-      'auth.forgotPasswordExpires',
-      {
-        infer: true,
-      },
-    );
-
-    await this.cacheManager.set(
-      createCacheKey(CacheKey.FORGOT_PASSWORD, admin.id),
-      token,
-      ms(tokenExpiresIn),
-    );
-
-    await this.emailQueue.add(
-      JobName.EMAIL_FORGOT_PASSWORD,
-      {
-        email: dto.email,
-        token,
-      } as IForgotPasswordEmailJob,
-      { attempts: 3, backoff: { type: 'exponential', delay: 60000 } },
-    );
-
-    return plainToInstance(ForgotPasswordResDto, {
-      redirect: 'http://localhost:3000/v1/auth/reset-password?token=' + token,
-    });
-  }
-
+  //* UTILS FUNCTION
   private verifyRefreshToken(token: string): JwtRefreshPayloadType {
     try {
       return this.jwtService.verify(token, {
