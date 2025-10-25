@@ -6,7 +6,7 @@ import {
   StringFieldOptional,
 } from '@/decorators/field.decorators';
 
-export class AdminUserRegisterReqDto {
+export class AdminRegisterReqDto {
   @EmailField()
   email!: string;
 

@@ -6,7 +6,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AdminUserEntity } from '../admin-user/entities/admin-user.entity';
-import { AuthAdminUserService } from './auth-admin-user.service';
+import { AuthAdminUserService } from './auth-admin.service';
 
 describe('AuthAdminUserService', () => {
   let service: AuthAdminUserService;

@@ -2,14 +2,14 @@ import { CurrentUser } from '@/decorators/current-user.decorator';
 import { ApiAuth, ApiPublic } from '@/decorators/http.decorators';
 import { Body, Controller, Post } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { AuthUserService } from './auth-user.service';
-import { LoginReqDto } from './dto/login.req.dto';
-import { LoginResDto } from './dto/login.res.dto';
-import { RefreshReqDto } from './dto/refresh.req.dto';
-import { RefreshResDto } from './dto/refresh.res.dto';
-import { RegisterReqDto } from './dto/register.req.dto';
-import { RegisterResDto } from './dto/register.res.dto';
-import { JwtPayloadType } from './types/jwt-payload.type';
+import { RefreshReqDto } from '../dto/refresh.req.dto';
+import { RefreshResDto } from '../dto/refresh.res.dto';
+import { LoginReqDto } from '../dto/user/login.req.dto';
+import { LoginResDto } from '../dto/user/login.res.dto';
+import { RegisterReqDto } from '../dto/user/register.req.dto';
+import { RegisterResDto } from '../dto/user/register.res.dto';
+import { AuthUserService } from '../services/auth-user.service';
+import { JwtPayloadType } from '../types/jwt-payload.type';
 
 @ApiTags('Authentication')
 @Controller({

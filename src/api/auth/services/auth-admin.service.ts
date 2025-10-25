@@ -1,4 +1,10 @@
-import { IEmailJob, IVerifyEmailJob } from '@/common/interfaces/job.interface';
+import { AdminUserEntity } from '@/api/admin-user/entities/admin-user.entity';
+import { RoleEntity } from '@/api/role/entities/role.entity';
+import {
+  IEmailJob,
+  IForgotPasswordEmailJob,
+  IVerifyEmailJob,
+} from '@/common/interfaces/job.interface';
 import { Branded } from '@/common/types/types';
 import { AllConfigType } from '@/config/config.type';
 import { SYSTEM_USER_ID } from '@/constants/app.constant';
@@ -22,17 +28,18 @@ import { plainToInstance } from 'class-transformer';
 import crypto from 'crypto';
 import ms from 'ms';
 import { Repository } from 'typeorm';
-import { RoleEntity } from '../role/entities/role.entity';
-import { UserEntity } from '../user/entities/user.entity';
-import { LoginReqDto } from './dto/login.req.dto';
-import { LoginResDto } from './dto/login.res.dto';
-import { RefreshReqDto } from './dto/refresh.req.dto';
-import { RefreshResDto } from './dto/refresh.res.dto';
-import { RegisterReqDto } from './dto/register.req.dto';
-import { RegisterResDto } from './dto/register.res.dto';
-import { JwtPayloadType } from './types/jwt-payload.type';
-import { JwtRefreshPayloadType } from './types/jwt-refresh-payload.type';
-
+import { AdminLoginReqDto } from '../dto/admin/admin-login.req.dto';
+import { AdminLoginResDto } from '../dto/admin/admin-login.res.dto';
+import { AdminRegisterReqDto } from '../dto/admin/admin-register.req.dto';
+import { AdminRegisterResDto } from '../dto/admin/admin-register.res.dto';
+import { ForgotPasswordReqDto } from '../dto/forgot-password.req.dto';
+import { ForgotPasswordResDto } from '../dto/forgot-password.res.dto';
+import { RefreshReqDto } from '../dto/refresh.req.dto';
+import { RefreshResDto } from '../dto/refresh.res.dto';
+import { VerifyAccountResDto } from '../dto/verify-account.req.dto';
+import { JwtForgotPasswordPayload } from '../types/jwt-forgot-password-payload';
+import { JwtPayloadType } from '../types/jwt-payload.type';
+import { JwtRefreshPayloadType } from '../types/jwt-refresh-payload.type';
 type Token = Branded<
   {
     accessToken: string;
@@ -43,27 +50,27 @@ type Token = Branded<
 >;
 
 @Injectable()
-export class AuthUserService {
+export class AuthAdminService {
   constructor(
     private readonly configService: ConfigService<AllConfigType>,
     private readonly jwtService: JwtService,
-    @InjectRepository(UserEntity)
-    private readonly userRepository: Repository<UserEntity>,
+    @InjectRepository(AdminUserEntity)
+    private readonly adminUserRepository: Repository<AdminUserEntity>,
     @InjectQueue(QueueName.EMAIL)
     private readonly emailQueue: Queue<IEmailJob, any, string>,
     @Inject(CACHE_MANAGER)
     private readonly cacheManager: Cache,
   ) {}
 
-  async signIn(dto: LoginReqDto): Promise<LoginResDto> {
+  async signIn(dto: AdminLoginReqDto): Promise<AdminLoginResDto> {
     const { email, password } = dto;
     console.log({ email });
-    console.log(await this.userRepository.count());
-    const user = await this.userRepository.findOne({
+    console.log(await this.adminUserRepository.count());
+    const user = await this.adminUserRepository.findOne({
       where: { email },
     });
 
-    const all = await this.userRepository.find({
+    const all = await this.adminUserRepository.find({
       select: ['id', 'email'],
     });
     console.log(all);
@@ -87,27 +94,28 @@ export class AuthUserService {
       userId: user.id,
       createdBy: SYSTEM_USER_ID,
       updatedBy: SYSTEM_USER_ID,
-      userType: ESessionUserType.USER,
+      userType: ESessionUserType.ADMIN,
     });
     await session.save();
 
     const token = await this.createToken({
       id: user.id,
       sessionId: session.id,
+      role: user.role,
       hash,
     });
 
     console.log(token);
 
-    return plainToInstance(LoginResDto, {
+    return plainToInstance(AdminLoginResDto, {
       userId: user.id,
       ...token,
     });
   }
 
-  async signUp(dto: RegisterReqDto): Promise<RegisterResDto> {
+  async signUp(dto: AdminRegisterReqDto): Promise<AdminRegisterResDto> {
     // Check if the user already exists
-    const isExistUser = await UserEntity.exists({
+    const isExistUser = await AdminUserEntity.exists({
       where: { email: dto.email },
     });
 
@@ -116,9 +124,10 @@ export class AuthUserService {
     }
 
     // Register user
-    const user = new UserEntity({
+    const user = new AdminUserEntity({
       email: dto.email,
       password: dto.password,
+      roleId: dto.roleId,
       createdBy: SYSTEM_USER_ID,
       updatedBy: SYSTEM_USER_ID,
     });
@@ -147,7 +156,7 @@ export class AuthUserService {
       { attempts: 3, backoff: { type: 'exponential', delay: 60000 } },
     );
 
-    return plainToInstance(RegisterResDto, {
+    return plainToInstance(AdminRegisterResDto, {
       userId: user.id,
     });
   }
@@ -169,7 +178,7 @@ export class AuthUserService {
       throw new UnauthorizedException();
     }
 
-    const user = await this.userRepository.findOneOrFail({
+    const user = await this.adminUserRepository.findOneOrFail({
       where: { id: session.userId },
       select: ['id'],
     });
@@ -186,6 +195,131 @@ export class AuthUserService {
       sessionId: session.id,
       hash: newHash,
     });
+  }
+
+  async verifyAccessToken(token: string): Promise<JwtPayloadType> {
+    let payload: JwtPayloadType;
+    try {
+      payload = this.jwtService.verify(token, {
+        secret: this.configService.getOrThrow('auth.secret', { infer: true }),
+      });
+    } catch {
+      throw new UnauthorizedException();
+    }
+
+    // Force logout if the session is in the blacklist
+    const isSessionBlacklisted = await this.cacheManager.store.get<boolean>(
+      createCacheKey(CacheKey.SESSION_BLACKLIST, payload.sessionId),
+    );
+
+    if (isSessionBlacklisted) {
+      throw new UnauthorizedException();
+    }
+
+    return payload;
+  }
+
+  async forgotPassword(
+    dto: ForgotPasswordReqDto,
+  ): Promise<ForgotPasswordResDto> {
+    const admin = await this.adminUserRepository.findOneOrFail({
+      where: { email: dto.email },
+    });
+
+    if (!admin) {
+      throw new ValidationException(ErrorCode.E004);
+    }
+
+    const token = await this.createForgotToken({ id: admin.id });
+    const tokenExpiresIn = this.configService.getOrThrow('auth.forgotExpires', {
+      infer: true,
+    });
+
+    await this.cacheManager.set(
+      createCacheKey(CacheKey.FORGOT_PASSWORD, admin.id),
+      token,
+      ms(tokenExpiresIn),
+    );
+
+    await this.emailQueue.add(
+      JobName.EMAIL_FORGOT_PASSWORD,
+      {
+        email: dto.email,
+        token,
+      } as IForgotPasswordEmailJob,
+      { attempts: 3, backoff: { type: 'exponential', delay: 60000 } },
+    );
+
+    return plainToInstance(ForgotPasswordResDto, {
+      redirect: 'http://localhost:3000/v1/auth/reset-password?token=' + token,
+    });
+  }
+
+  async verifyAccount(token: string): Promise<VerifyAccountResDto> {
+    const { id } = this.verificationToken(token);
+
+    const user = await this.adminUserRepository.findOneBy({ id });
+
+    if (!user) {
+      throw new UnauthorizedException();
+    }
+
+    user.verifiedAt = new Date();
+    await user.save();
+
+    await this.cacheManager.del(
+      createCacheKey(CacheKey.EMAIL_VERIFICATION, id),
+    );
+
+    return plainToInstance(VerifyAccountResDto, {
+      verified: true,
+      message: 'Your account has been verified',
+      userId: user.id,
+    });
+  }
+
+  private verifyRefreshToken(token: string): JwtRefreshPayloadType {
+    try {
+      return this.jwtService.verify(token, {
+        secret: this.configService.getOrThrow('auth.refreshSecret', {
+          infer: true,
+        }),
+      });
+    } catch {
+      throw new UnauthorizedException();
+    }
+  }
+
+  private async createVerificationToken(data: { id: string }): Promise<string> {
+    return await this.jwtService.signAsync(
+      {
+        id: data.id,
+      },
+      {
+        secret: this.configService.getOrThrow('auth.confirmEmailSecret', {
+          infer: true,
+        }),
+        expiresIn: this.configService.getOrThrow('auth.confirmEmailExpires', {
+          infer: true,
+        }),
+      },
+    );
+  }
+
+  private async createForgotToken(data: { id: string }): Promise<string> {
+    return await this.jwtService.signAsync(
+      {
+        id: data.id,
+      },
+      {
+        secret: this.configService.getOrThrow('auth.forgotSecret', {
+          infer: true,
+        }),
+        expiresIn: this.configService.getOrThrow('auth.forgotExpires', {
+          infer: true,
+        }),
+      },
+    );
   }
 
   private async createToken(data: {
@@ -233,26 +367,10 @@ export class AuthUserService {
     } as Token;
   }
 
-  private async createVerificationToken(data: { id: string }): Promise<string> {
-    return await this.jwtService.signAsync(
-      {
-        id: data.id,
-      },
-      {
-        secret: this.configService.getOrThrow('auth.confirmEmailSecret', {
-          infer: true,
-        }),
-        expiresIn: this.configService.getOrThrow('auth.confirmEmailExpires', {
-          infer: true,
-        }),
-      },
-    );
-  }
-
-  private verifyRefreshToken(token: string): JwtRefreshPayloadType {
+  private verificationToken(token: string): JwtForgotPasswordPayload {
     try {
       return this.jwtService.verify(token, {
-        secret: this.configService.getOrThrow('auth.refreshSecret', {
+        secret: this.configService.getOrThrow('auth.confirmEmailSecret', {
           infer: true,
         }),
       });

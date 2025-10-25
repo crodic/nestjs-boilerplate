@@ -1,20 +1,20 @@
-import { AuthUserService } from '@/api/auth/services/auth-user.service';
+import { AuthAdminService } from '@/api/auth/services/auth-admin.service';
 import { CaslAbilityFactory } from '@/libs/casl/ability.factory';
 import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ClsService } from 'nestjs-cls';
-import { AuthGuard } from './auth.guard';
+import { AuthAdminGuard } from './auth-admin.guard';
 
-describe('AuthGuard', () => {
-  let guard: AuthGuard;
+describe('AuthAdminGuard', () => {
+  let guard: AuthAdminGuard;
   let reflector: Partial<Record<keyof Reflector, jest.Mock>>;
-  let authUserService: Partial<Record<keyof AuthUserService, jest.Mock>>;
+  let authAdminService: Partial<Record<keyof AuthAdminService, jest.Mock>>;
   let context: Partial<Record<keyof ExecutionContext, jest.Mock>>;
   let module: TestingModule;
 
   beforeAll(async () => {
-    authUserService = {
+    authAdminService = {
       verifyAccessToken: jest.fn(),
     };
 
@@ -32,10 +32,10 @@ describe('AuthGuard', () => {
 
     module = await Test.createTestingModule({
       providers: [
-        AuthGuard,
+        AuthAdminGuard,
         {
-          provide: AuthUserService,
-          useValue: authUserService,
+          provide: AuthAdminService,
+          useValue: authAdminService,
         },
         {
           provide: Reflector,
@@ -48,7 +48,7 @@ describe('AuthGuard', () => {
         CaslAbilityFactory,
       ],
     }).compile();
-    guard = module.get<AuthGuard>(AuthGuard);
+    guard = module.get<AuthAdminGuard>(AuthAdminGuard);
   });
 
   afterEach(async () => {
@@ -74,7 +74,7 @@ describe('AuthGuard', () => {
       ]);
       expect(reflector.getAllAndOverride).toHaveBeenCalledTimes(1);
       expect(context.switchToHttp().getRequest).not.toHaveBeenCalled();
-      expect(authUserService.verifyAccessToken).not.toHaveBeenCalled();
+      expect(authAdminService.verifyAccessToken).not.toHaveBeenCalled();
     });
 
     it('should return true if the route is auth optional and no token is provided', async () => {
@@ -101,7 +101,7 @@ describe('AuthGuard', () => {
       );
       expect(reflector.getAllAndOverride).toHaveBeenCalledTimes(2);
       expect(context.switchToHttp().getRequest).toHaveBeenCalledTimes(1);
-      expect(authUserService.verifyAccessToken).not.toHaveBeenCalled();
+      expect(authAdminService.verifyAccessToken).not.toHaveBeenCalled();
     });
 
     it('should verify the token and return true if the route is auth optional and the token is valid', async () => {
@@ -117,7 +117,7 @@ describe('AuthGuard', () => {
         },
       });
 
-      authUserService.verifyAccessToken.mockReturnValueOnce({ id: 'x' });
+      authAdminService.verifyAccessToken.mockReturnValueOnce({ id: 'x' });
 
       const result = await guard.canActivate(context as ExecutionContext);
 
@@ -132,7 +132,7 @@ describe('AuthGuard', () => {
       );
       expect(reflector.getAllAndOverride).toHaveBeenCalledTimes(2);
       expect(context.switchToHttp().getRequest).toHaveBeenCalledTimes(1);
-      expect(authUserService.verifyAccessToken).toHaveBeenCalledTimes(1);
+      expect(authAdminService.verifyAccessToken).toHaveBeenCalledTimes(1);
     });
 
     it('should throw an UnauthorizedException if the route is not public and no token is provided', async () => {
@@ -159,7 +159,7 @@ describe('AuthGuard', () => {
       );
       expect(reflector.getAllAndOverride).toHaveBeenCalledTimes(2);
       expect(context.switchToHttp().getRequest).toHaveBeenCalledTimes(1);
-      expect(authUserService.verifyAccessToken).not.toHaveBeenCalled();
+      expect(authAdminService.verifyAccessToken).not.toHaveBeenCalled();
     });
 
     it('should throw an UnauthorizedException if the token is invalid', async () => {
@@ -175,7 +175,7 @@ describe('AuthGuard', () => {
         },
       });
 
-      authUserService.verifyAccessToken.mockImplementationOnce(() => {
+      authAdminService.verifyAccessToken.mockImplementationOnce(() => {
         throw new UnauthorizedException();
       });
 
@@ -192,7 +192,7 @@ describe('AuthGuard', () => {
       );
       expect(reflector.getAllAndOverride).toHaveBeenCalledTimes(2);
       expect(context.switchToHttp().getRequest).toHaveBeenCalledTimes(1);
-      expect(authUserService.verifyAccessToken).toHaveBeenCalledTimes(1);
+      expect(authAdminService.verifyAccessToken).toHaveBeenCalledTimes(1);
     });
 
     it('should verify the token and return true if the route is not public and the token is valid', async () => {
@@ -208,7 +208,7 @@ describe('AuthGuard', () => {
         },
       });
 
-      authUserService.verifyAccessToken.mockReturnValueOnce({ id: 'x' });
+      authAdminService.verifyAccessToken.mockReturnValueOnce({ id: 'x' });
 
       const result = await guard.canActivate(context as ExecutionContext);
 
@@ -223,7 +223,7 @@ describe('AuthGuard', () => {
       );
       expect(reflector.getAllAndOverride).toHaveBeenCalledTimes(2);
       expect(context.switchToHttp().getRequest).toHaveBeenCalledTimes(1);
-      expect(authUserService.verifyAccessToken).toHaveBeenCalledTimes(1);
+      expect(authAdminService.verifyAccessToken).toHaveBeenCalledTimes(1);
     });
   });
 });

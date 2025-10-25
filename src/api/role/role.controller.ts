@@ -2,6 +2,7 @@ import { OffsetPaginatedDto } from '@/common/dto/offset-pagination/paginated.dto
 import { Uuid } from '@/common/types/common.type';
 import { ApiAuth } from '@/decorators/http.decorators';
 import { CheckPolicies } from '@/decorators/policies.decorator';
+import { AuthAdminGuard } from '@/guards/auth-admin.guard';
 import { PoliciesGuard } from '@/guards/policies.guard';
 import { AppAbility } from '@/libs/casl/ability.factory';
 import { AppActions, AppSubjects } from '@/utils/permissions.constant';
@@ -26,6 +27,7 @@ import { RoleService } from './role.service';
 
 @ApiTags('Roles')
 @Controller({ path: 'roles', version: '1' })
+@UseGuards(AuthAdminGuard)
 @UseGuards(PoliciesGuard)
 export class RoleController {
   constructor(private readonly roleService: RoleService) {}

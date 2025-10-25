@@ -1,12 +1,21 @@
 import { NumberField, StringField } from '@/decorators/field.decorators';
+import { Exclude, Expose } from 'class-transformer';
 
-export class RefreshResDto {
+@Exclude()
+export class AdminLoginResDto {
+  @Expose()
+  @StringField()
+  userId!: string;
+
+  @Expose()
   @StringField()
   accessToken!: string;
 
+  @Expose()
   @StringField()
   refreshToken!: string;
 
+  @Expose()
   @NumberField()
   tokenExpires!: number;
 }

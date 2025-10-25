@@ -1,4 +1,4 @@
-import { AuthUserService } from '@/api/auth/services/auth-user.service';
+import { AuthAdminService } from '@/api/auth/services/auth-admin.service';
 import { IS_AUTH_OPTIONAL, IS_PUBLIC } from '@/constants/app.constant';
 import {
   CanActivate,
@@ -11,10 +11,10 @@ import { Request } from 'express';
 import { ClsService } from 'nestjs-cls';
 
 @Injectable()
-export class AuthGuard implements CanActivate {
+export class AuthAdminGuard implements CanActivate {
   constructor(
     private reflector: Reflector,
-    private authUserService: AuthUserService,
+    private authAdminService: AuthAdminService,
     private cls: ClsService,
   ) {}
 
@@ -41,7 +41,8 @@ export class AuthGuard implements CanActivate {
       throw new UnauthorizedException();
     }
 
-    request['user'] = await this.authUserService.verifyAccessToken(accessToken);
+    request['user'] =
+      await this.authAdminService.verifyAccessToken(accessToken);
     const userId = request.user?.id;
     this.cls.set('userId', userId);
 

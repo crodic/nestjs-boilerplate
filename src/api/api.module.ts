@@ -35,6 +35,7 @@ import { UserModule } from './user/user.module';
     FileUploadModule,
     AuthAdminUserModule,
     AuthUserModule,
+    AuthModule,
   ],
 })
 export class ApiModule {}

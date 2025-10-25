@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { AuthAdminUserController } from './auth-admin-user.controller';
 import { AuthAdminUserService } from './auth-admin-user.service';
+import { AuthAdminUserController } from './auth-admin.controller';
 
 describe('AuthAdminUserController', () => {
   let controller: AuthAdminUserController;
