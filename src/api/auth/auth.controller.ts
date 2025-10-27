@@ -10,7 +10,7 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiQuery, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { AdminUserLoginReqDto } from './dto/admin-users/admin-user-login.req.dto';
 import { AdminUserLoginResDto } from './dto/admin-users/admin-user-login.res.dto';
@@ -80,6 +80,7 @@ export class AuthController {
   }
 
   @ApiPublic({ summary: '[Admin] Verify account' })
+  @ApiQuery({ name: 'token', type: 'string' })
   @Get('admin/verify')
   async adminVerifyAccount(@Query('token') token: string) {
     return await this.authService.adminVerifyAccount(token);
@@ -97,6 +98,7 @@ export class AuthController {
   }
 
   @ApiPublic({ type: ResetPasswordReqDto, summary: '[Admin] Reset password' })
+  @ApiQuery({ name: 'token', type: 'string' })
   @Post('admin/reset-password')
   async adminResetPassword(
     @Query('token') token: string,
@@ -151,6 +153,7 @@ export class AuthController {
   }
 
   @ApiPublic({ type: ResetPasswordReqDto, summary: '[User] Reset password' })
+  @ApiQuery({ name: 'token', type: 'string' })
   @Post('reset-password')
   async resetPassword(
     @Query('token') token: string,
@@ -160,6 +163,7 @@ export class AuthController {
   }
 
   @ApiPublic({ summary: '[User] Verify email' })
+  @ApiQuery({ name: 'token', type: 'string' })
   @Get('verify/email')
   async verifyEmail(@Query() token: string) {
     return await this.authService.verifyAccount(token);
