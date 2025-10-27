@@ -1,8 +1,8 @@
 import { Uuid } from '@/common/types/common.type';
 import {
-  ClassField,
   EmailField,
   PasswordField,
+  StringField,
   StringFieldOptional,
 } from '@/decorators/field.decorators';
 
@@ -13,7 +13,7 @@ export class AdminUserRegisterReqDto {
   @PasswordField()
   password!: string;
 
-  @ClassField(() => String)
+  @StringField()
   roleId!: Uuid;
 
   @StringFieldOptional()

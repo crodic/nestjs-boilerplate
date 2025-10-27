@@ -15,7 +15,14 @@ import { createCacheKey } from '@/utils/cache.util';
 import { verifyPassword } from '@/utils/password.util';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+  Inject,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { randomStringGenerator } from '@nestjs/common/utils/random-string-generator.util';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
@@ -37,6 +44,10 @@ import { ForgotPasswordResDto } from './dto/forgot-password.res.dto';
 import { RefreshReqDto } from './dto/refresh.req.dto';
 import { RefreshResDto } from './dto/refresh.res.dto';
 import { RegisterResDto } from './dto/register.res.dto';
+import { ResendEmailVerifyReqDto } from './dto/resend-email-verify.req.dto';
+import { ResendEmailVerifyResDto } from './dto/resend-email-verify.res.dto';
+import { ResetPasswordReqDto } from './dto/reset-password.req.dto';
+import { ResetPasswordResDto } from './dto/reset-password.res.dto';
 import { LoginReqDto } from './dto/users/login.req.dto';
 import { LoginResDto } from './dto/users/login.res.dto';
 import { RegisterReqDto } from './dto/users/register.req.dto';
@@ -173,13 +184,13 @@ export class AuthService {
     });
   }
 
-  async verifyAdminAccount(token: string): Promise<VerifyAccountResDto> {
-    const { id } = this.verifyVerificationToken(token);
+  async adminVerifyAccount(token: string): Promise<VerifyAccountResDto> {
+    const { id } = this.verifyEmailToken(token);
 
     const user = await this.adminUserRepository.findOneBy({ id });
 
     if (!user) {
-      throw new UnauthorizedException();
+      throw new BadRequestException();
     }
 
     user.verifiedAt = new Date();
@@ -192,6 +203,41 @@ export class AuthService {
     return plainToInstance(VerifyAccountResDto, {
       verified: true,
       message: 'Your account has been verified',
+      userId: user.id,
+    });
+  }
+
+  async adminResendVerifyEmail(
+    dto: ResendEmailVerifyReqDto,
+  ): Promise<ResendEmailVerifyResDto> {
+    const user = await AdminUserEntity.findOne({
+      where: { email: dto.email },
+    });
+
+    if (user) {
+      const token = await this.createVerificationToken({ id: user.id });
+      const tokenExpiresIn = this.configService.getOrThrow(
+        'auth.confirmEmailExpires',
+        {
+          infer: true,
+        },
+      );
+      await this.cacheManager.set(
+        createCacheKey(CacheKey.EMAIL_VERIFICATION, user.id),
+        token,
+        ms(tokenExpiresIn),
+      );
+      await this.emailQueue.add(
+        JobName.EMAIL_VERIFICATION,
+        {
+          email: dto.email,
+          token,
+        } as IVerifyEmailJob,
+        { attempts: 3, backoff: { type: 'exponential', delay: 60000 } },
+      );
+    }
+
+    return plainToInstance(ResendEmailVerifyResDto, {
       userId: user.id,
     });
   }
@@ -235,12 +281,9 @@ export class AuthService {
     }
 
     const token = await this.createForgotToken({ id: admin.id });
-    const tokenExpiresIn = this.configService.getOrThrow(
-      'auth.forgotPasswordExpires',
-      {
-        infer: true,
-      },
-    );
+    const tokenExpiresIn = this.configService.getOrThrow('auth.forgotExpires', {
+      infer: true,
+    });
 
     await this.cacheManager.set(
       createCacheKey(CacheKey.FORGOT_PASSWORD, admin.id),
@@ -257,8 +300,43 @@ export class AuthService {
       { attempts: 3, backoff: { type: 'exponential', delay: 60000 } },
     );
 
+    const portalResetPasswordUrl = this.configService.getOrThrow(
+      'auth.portalResetPasswordUrl',
+      {
+        infer: true,
+      },
+    );
+
     return plainToInstance(ForgotPasswordResDto, {
-      redirect: 'http://localhost:3000/v1/auth/reset-password?token=' + token,
+      redirect: `${portalResetPasswordUrl}?token=${token}`,
+    });
+  }
+
+  async adminResetPassword(
+    token: string,
+    dto: ResetPasswordReqDto,
+  ): Promise<ResetPasswordResDto> {
+    const { id } = this.verifyForgotPasswordToken(token);
+
+    const user = await this.adminUserRepository.findOneBy({ id });
+
+    if (!user) {
+      throw new BadRequestException();
+    }
+
+    await this.cacheManager.del(createCacheKey(CacheKey.FORGOT_PASSWORD, id));
+
+    if (dto.password !== dto.confirmPassword) {
+      throw new BadRequestException();
+    }
+
+    user.password = dto.password;
+
+    await user.save();
+
+    return plainToInstance(ResetPasswordResDto, {
+      success: true,
+      message: 'Reset password successfully. Please login to continue website',
     });
   }
 
@@ -360,13 +438,62 @@ export class AuthService {
     });
   }
 
-  async logout(userToken: JwtPayloadType): Promise<void> {
-    await this.cacheManager.store.set<boolean>(
-      createCacheKey(CacheKey.SESSION_BLACKLIST, userToken.sessionId),
-      true,
-      userToken.exp * 1000 - Date.now(),
+  async verifyAccount(token: string): Promise<VerifyAccountResDto> {
+    const { id } = this.verifyEmailToken(token);
+
+    const user = await this.userRepository.findOneBy({ id });
+
+    if (!user) {
+      throw new BadRequestException();
+    }
+
+    user.verifiedAt = new Date();
+    await user.save();
+
+    await this.cacheManager.del(
+      createCacheKey(CacheKey.EMAIL_VERIFICATION, id),
     );
-    await SessionEntity.delete(userToken.sessionId);
+
+    return plainToInstance(VerifyAccountResDto, {
+      verified: true,
+      message: 'Your account has been verified',
+      userId: user.id,
+    });
+  }
+
+  async resendVerifyEmail(
+    dto: ResendEmailVerifyReqDto,
+  ): Promise<ResendEmailVerifyResDto> {
+    const user = await UserEntity.findOne({
+      where: { email: dto.email },
+    });
+
+    if (user) {
+      const token = await this.createVerificationToken({ id: user.id });
+      const tokenExpiresIn = this.configService.getOrThrow(
+        'auth.confirmEmailExpires',
+        {
+          infer: true,
+        },
+      );
+      await this.cacheManager.set(
+        createCacheKey(CacheKey.EMAIL_VERIFICATION, user.id),
+        token,
+        ms(tokenExpiresIn),
+      );
+      await this.emailQueue.add(
+        JobName.EMAIL_VERIFICATION,
+        {
+          email: dto.email,
+          token,
+        } as IVerifyEmailJob,
+        { attempts: 3, backoff: { type: 'exponential', delay: 60000 } },
+      );
+    }
+
+    return plainToInstance(ResendEmailVerifyResDto, {
+      userId: user.id,
+    });
   }
 
   async refreshToken(dto: RefreshReqDto): Promise<RefreshResDto> {
@@ -396,6 +523,78 @@ export class AuthService {
     });
   }
 
+  async forgotPassword(
+    dto: ForgotPasswordReqDto,
+  ): Promise<ForgotPasswordResDto> {
+    const user = await this.userRepository.findOneOrFail({
+      where: { email: dto.email },
+    });
+
+    if (!user) {
+      throw new ValidationException(ErrorCode.E004);
+    }
+
+    const token = await this.createForgotToken({ id: user.id });
+    const tokenExpiresIn = this.configService.getOrThrow('auth.forgotExpires', {
+      infer: true,
+    });
+
+    await this.cacheManager.set(
+      createCacheKey(CacheKey.FORGOT_PASSWORD, user.id),
+      token,
+      ms(tokenExpiresIn),
+    );
+
+    await this.emailQueue.add(
+      JobName.EMAIL_FORGOT_PASSWORD,
+      {
+        email: dto.email,
+        token,
+      } as IForgotPasswordEmailJob,
+      { attempts: 3, backoff: { type: 'exponential', delay: 60000 } },
+    );
+
+    const clientResetPasswordUrl = this.configService.getOrThrow(
+      'auth.clientResetPasswordUrl',
+      {
+        infer: true,
+      },
+    );
+
+    return plainToInstance(ForgotPasswordResDto, {
+      redirect: `${clientResetPasswordUrl}?token=${token}`,
+    });
+  }
+
+  async resetPassword(
+    token: string,
+    dto: ResetPasswordReqDto,
+  ): Promise<ResetPasswordResDto> {
+    const { id } = this.verifyForgotPasswordToken(token);
+
+    const user = await this.userRepository.findOneBy({ id });
+
+    if (!user) {
+      throw new BadRequestException();
+    }
+
+    await this.cacheManager.del(createCacheKey(CacheKey.FORGOT_PASSWORD, id));
+
+    if (dto.password !== dto.confirmPassword) {
+      throw new BadRequestException();
+    }
+
+    user.password = dto.password;
+
+    await user.save();
+
+    return plainToInstance(ResetPasswordResDto, {
+      success: true,
+      message: 'Reset password successfully. Please login to continue website',
+    });
+  }
+
+  //* UTILS FUNCTION
   async verifyAccessToken(token: string): Promise<JwtPayloadType> {
     let payload: JwtPayloadType;
     try {
@@ -418,7 +617,15 @@ export class AuthService {
     return payload;
   }
 
-  //* UTILS FUNCTION
+  async logout(userToken: JwtPayloadType): Promise<void> {
+    await this.cacheManager.store.set<boolean>(
+      createCacheKey(CacheKey.SESSION_BLACKLIST, userToken.sessionId),
+      true,
+      userToken.exp * 1000 - Date.now(),
+    );
+    await SessionEntity.delete(userToken.sessionId);
+  }
+
   private verifyRefreshToken(token: string): JwtRefreshPayloadType {
     try {
       return this.jwtService.verify(token, {
@@ -446,16 +653,17 @@ export class AuthService {
       },
     );
   }
+
   private async createForgotToken(data: { id: string }): Promise<string> {
     return await this.jwtService.signAsync(
       {
         id: data.id,
       },
       {
-        secret: this.configService.getOrThrow('auth.forgotPasswordSecret', {
+        secret: this.configService.getOrThrow('auth.forgotSecret', {
           infer: true,
         }),
-        expiresIn: this.configService.getOrThrow('auth.forgotPasswordExpires', {
+        expiresIn: this.configService.getOrThrow('auth.forgotExpires', {
           infer: true,
         }),
       },
@@ -507,7 +715,7 @@ export class AuthService {
     } as Token;
   }
 
-  private verifyVerificationToken(token: string): JwtForgotPasswordPayload {
+  private verifyEmailToken(token: string): JwtForgotPasswordPayload {
     try {
       return this.jwtService.verify(token, {
         secret: this.configService.getOrThrow('auth.confirmEmailSecret', {
@@ -515,7 +723,19 @@ export class AuthService {
         }),
       });
     } catch {
-      throw new UnauthorizedException();
+      throw new HttpException('URL không còn khả dụng', HttpStatus.GONE);
+    }
+  }
+
+  private verifyForgotPasswordToken(token: string): JwtForgotPasswordPayload {
+    try {
+      return this.jwtService.verify(token, {
+        secret: this.configService.getOrThrow('auth.forgotSecret', {
+          infer: true,
+        }),
+      });
+    } catch {
+      throw new HttpException('URL không còn khả dụng', HttpStatus.GONE);
     }
   }
 
