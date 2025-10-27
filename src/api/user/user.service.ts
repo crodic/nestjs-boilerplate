@@ -12,6 +12,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import assert from 'assert';
 import { plainToInstance } from 'class-transformer';
 import { ClsService } from 'nestjs-cls';
+import {
+  Paginated,
+  paginate as paginateLib,
+  PaginateQuery,
+} from 'nestjs-paginate';
 import { Repository } from 'typeorm';
 import { CreateUserReqDto } from './dto/create-user.req.dto';
 import { ListUserReqDto } from './dto/list-user.req.dto';
@@ -29,6 +34,22 @@ export class UserService {
     private readonly userRepository: Repository<UserEntity>,
     private cls: ClsService,
   ) {}
+
+  async findAllUser(query: PaginateQuery): Promise<Paginated<UserResDto>> {
+    const result = await paginateLib(query, this.userRepository, {
+      sortableColumns: ['id', 'email', 'username', 'createdAt', 'updatedAt'],
+      searchableColumns: ['email', 'username'],
+      defaultSortBy: [['id', 'DESC']],
+      relations: ['posts'],
+    });
+
+    return {
+      ...result,
+      data: plainToInstance(UserResDto, result.data, {
+        excludeExtraneousValues: true,
+      }),
+    } as Paginated<UserResDto>;
+  }
 
   async create(dto: CreateUserReqDto): Promise<UserResDto> {
     const { username, email, password, bio, image } = dto;
