@@ -7,6 +7,7 @@ import {
   Index,
   OneToMany,
   PrimaryGeneratedColumn,
+  Relation,
 } from 'typeorm';
 
 @Entity('roles')
@@ -32,7 +33,7 @@ export class RoleEntity extends AbstractEntity {
   permissions: string[];
 
   @OneToMany(() => AdminUserEntity, (user) => user.role)
-  users: AdminUserEntity[];
+  users: Relation<AdminUserEntity>[];
 
   @DeleteDateColumn({
     name: 'deleted_at',
