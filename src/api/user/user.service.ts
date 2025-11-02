@@ -35,10 +35,22 @@ export class UserService {
     private cls: ClsService,
   ) {}
 
-  async findAllUser(query: PaginateQuery): Promise<Paginated<UserResDto>> {
-    const result = await paginateLib(query, this.userRepository, {
+  async findAllUser(
+    query: PaginateQuery,
+    email: string,
+  ): Promise<Paginated<UserResDto>> {
+    const queryBuilder = this.userRepository.createQueryBuilder('user');
+
+    if (email) {
+      queryBuilder.andWhere('user.email LIKE :title', {
+        title: `%${email}%`,
+      });
+    }
+
+    const result = await paginateLib(query, queryBuilder, {
       sortableColumns: ['id', 'email', 'username', 'createdAt', 'updatedAt'],
-      searchableColumns: ['email', 'username'],
+      searchableColumns: ['username', 'email'],
+      ignoreSearchByInQueryParam: true,
       defaultSortBy: [['id', 'DESC']],
       relations: ['posts'],
     });
