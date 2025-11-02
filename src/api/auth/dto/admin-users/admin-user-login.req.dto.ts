@@ -1,7 +1,7 @@
 import { EmailField, PasswordField } from '@/decorators/field.decorators';
 
-export class RegisterReqDto {
-  @EmailField()
+export class AdminUserLoginReqDto {
+  @EmailField({ toLowerCase: false })
   email!: string;
 
   @PasswordField()

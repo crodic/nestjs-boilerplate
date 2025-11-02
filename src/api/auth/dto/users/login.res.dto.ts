@@ -1,9 +1,4 @@
-import { ESessionLoginScope } from '@/constants/entity.enum';
-import {
-  EnumField,
-  NumberField,
-  StringField,
-} from '@/decorators/field.decorators';
+import { NumberField, StringField } from '@/decorators/field.decorators';
 import { Exclude, Expose } from 'class-transformer';
 
 @Exclude()
@@ -19,10 +14,6 @@ export class LoginResDto {
   @Expose()
   @StringField()
   refreshToken!: string;
-
-  @Expose()
-  @EnumField(() => ESessionLoginScope)
-  scope: ESessionLoginScope;
 
   @Expose()
   @NumberField()

@@ -9,7 +9,7 @@ services:
     env_file:
       - .env.docker
     ports:
-      - "3000:3000"
+      - '3000:3000'
     networks:
       - nestjs-boilerplate-network
 
@@ -23,9 +23,9 @@ services:
       POSTGRES_DB: nestjs_boilerplate
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      TZ: "UTC"
+      TZ: 'UTC'
     ports:
-      - "25432:5432"
+      - '25432:5432'
     networks:
       - nestjs-boilerplate-network
 
@@ -33,14 +33,14 @@ services:
     image: redis/redis-stack:latest
     restart: always
     ports:
-      - "6379:6379"
-      - "8001:8001"
+      - '6379:6379'
+      - '8001:8001'
     volumes:
       - redis_data:/data
     healthcheck:
-      test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
+      test: ['CMD', 'redis-cli', '--raw', 'incr', 'ping']
     environment:
-      REDIS_ARGS: "--requirepass redispass"
+      REDIS_ARGS: '--requirepass redispass'
     networks:
       - nestjs-boilerplate-network
 
@@ -58,14 +58,28 @@ services:
     container_name: pgadmin
     image: dpage/pgadmin4
     ports:
-      - "18080:80"
+      - '18080:80'
     volumes:
       - pgadmin_data:/root/.pgadmin
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@example.com
       PGADMIN_DEFAULT_PASSWORD: 12345678
-      PGADMIN_CONFIG_WTF_CSRF_ENABLED: "False"
-      PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION: "False"
+      PGADMIN_CONFIG_WTF_CSRF_ENABLED: 'False'
+      PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION: 'False'
+    networks:
+      - nestjs-boilerplate-network
+
+  pictshare:
+    image: hascheksolutions/pictshare
+    container_name: pictshare
+    restart: unless-stopped
+    ports:
+      - '5050:80'
+    environment:
+      - URL=http://localhost:5050/
+      - MAX_UPLOAD_SIZE=1024
+    volumes:
+      - /data/pictshareuploads:/usr/share/nginx/html/data
     networks:
       - nestjs-boilerplate-network
 

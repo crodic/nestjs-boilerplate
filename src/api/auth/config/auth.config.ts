@@ -1,7 +1,7 @@
 import { IsMs } from '@/decorators/validators/is-ms.decorator';
 import validateConfig from '@/utils/validate-config';
 import { registerAs } from '@nestjs/config';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsString, IsUrl } from 'class-validator';
 import { AuthConfig } from './auth-config.type';
 
 class EnvironmentVariablesValidator {
@@ -40,6 +40,16 @@ class EnvironmentVariablesValidator {
   @IsNotEmpty()
   @IsMs()
   AUTH_CONFIRM_EMAIL_TOKEN_EXPIRES_IN: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @IsUrl({ require_tld: false })
+  AUTH_PORTAL_RESET_PASSWORD_URL: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @IsUrl({ require_tld: false })
+  AUTH_CLIENT_RESET_PASSWORD_URL: string;
 }
 
 export default registerAs<AuthConfig>('auth', () => {
@@ -55,5 +65,7 @@ export default registerAs<AuthConfig>('auth', () => {
     forgotExpires: process.env.AUTH_FORGOT_TOKEN_EXPIRES_IN,
     confirmEmailSecret: process.env.AUTH_CONFIRM_EMAIL_SECRET,
     confirmEmailExpires: process.env.AUTH_CONFIRM_EMAIL_TOKEN_EXPIRES_IN,
+    portalResetPasswordUrl: process.env.AUTH_PORTAL_RESET_PASSWORD_URL,
+    clientResetPasswordUrl: process.env.AUTH_CLIENT_RESET_PASSWORD_URL,
   };
 });

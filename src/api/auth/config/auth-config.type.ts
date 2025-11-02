@@ -7,4 +7,6 @@ export type AuthConfig = {
   forgotExpires: string;
   confirmEmailSecret: string;
   confirmEmailExpires: string;
+  portalResetPasswordUrl: string;
+  clientResetPasswordUrl: string;
 };

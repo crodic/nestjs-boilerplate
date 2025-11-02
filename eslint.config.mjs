@@ -15,7 +15,7 @@ export default tsEslint.config(
       },
     },
     ignores: [
-      'eslint.config.mjs',
+      // 'eslint.config.mjs',
       'docs/.vuepress/**/*',
       'src/generated/i18n.generated.ts',
     ],
@@ -32,6 +32,7 @@ export default tsEslint.config(
           caughtErrorsIgnorePattern: '^_',
         },
       ],
+      'prettier/prettier': 'off',
     },
   },
 );
