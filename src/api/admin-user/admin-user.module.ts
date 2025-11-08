@@ -9,9 +9,6 @@ import { AdminUserEntity } from './entities/admin-user.entity';
 @Module({
   controllers: [AdminUserController],
   providers: [AdminUserService, CaslAbilityFactory],
-  imports: [
-    TypeOrmModule.forFeature([RoleEntity]),
-    TypeOrmModule.forFeature([AdminUserEntity]),
-  ],
+  imports: [TypeOrmModule.forFeature([RoleEntity, AdminUserEntity])],
 })
 export class AdminUserModule {}

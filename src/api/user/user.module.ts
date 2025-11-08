@@ -7,10 +7,7 @@ import { UserController } from './user.controller';
 import { UserService } from './user.service';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([UserEntity]),
-    TypeOrmModule.forFeature([RoleEntity]),
-  ],
+  imports: [TypeOrmModule.forFeature([UserEntity, RoleEntity])],
   controllers: [UserController],
   providers: [UserService, CaslAbilityFactory],
   exports: [UserService],
