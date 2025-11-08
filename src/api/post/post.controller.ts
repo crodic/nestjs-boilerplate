@@ -1,4 +1,3 @@
-import { OffsetPaginatedDto } from '@/common/dto/offset-pagination/paginated.dto';
 import { Uuid } from '@/common/types/common.type';
 import { ApiAuth, ApiAuthWithPaginate } from '@/decorators/http.decorators';
 import {
@@ -10,11 +9,9 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
-  Query,
 } from '@nestjs/common';
 import { ApiParam, ApiTags } from '@nestjs/swagger';
 import { Paginate, Paginated, PaginateQuery } from 'nestjs-paginate';
-import { ListUserReqDto } from '../user/dto/list-user.req.dto';
 import { CreatePostReqDto } from './dto/create-post.req.dto';
 import { PostResDto } from './dto/post.res.dto';
 import { UpdatePostReqDto } from './dto/update-post.req.dto';
@@ -28,7 +25,7 @@ import { PostService } from './post.service';
 export class PostController {
   constructor(private readonly postService: PostService) {}
 
-  @Get('/paginate')
+  @Get('/')
   @ApiAuthWithPaginate(
     { dto: PostResDto },
     {
@@ -38,26 +35,8 @@ export class PostController {
       relations: ['user'],
     },
   )
-  // @PaginatedSwaggerDocs(PostResDto, {
-  //   sortableColumns: ['id', 'title', 'content'],
-  //   defaultSortBy: [['id', 'DESC']],
-  //   searchableColumns: ['title', 'content'],
-  //   relations: ['user'],
-  // })
   findAll(@Paginate() query: PaginateQuery): Promise<Paginated<PostResDto>> {
     return this.postService.findAll(query);
-  }
-
-  @Get()
-  @ApiAuth({
-    type: PostResDto,
-    summary: 'Get posts',
-    isPaginated: true,
-  })
-  async findMany(
-    @Query() reqDto: ListUserReqDto,
-  ): Promise<OffsetPaginatedDto<PostResDto>> {
-    return this.postService.findMany(reqDto);
   }
 
   @Get(':id')

@@ -115,7 +115,7 @@ export class UserController {
   }
 
   @ApiAuth({
-    type: ChangePasswordReqDto,
+    type: ChangePasswordResDto,
     summary: 'Change password',
     errorResponses: [400, 401, 403, 404, 500],
   })
