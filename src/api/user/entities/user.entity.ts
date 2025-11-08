@@ -1,5 +1,4 @@
 import { PostEntity } from '@/api/post/entities/post.entity';
-import { RoleEntity } from '@/api/role/entities/role.entity';
 import { Uuid } from '@/common/types/common.type';
 import { EUserLoginProvider } from '@/constants/entity.enum';
 import { AbstractEntity } from '@/database/entities/abstract.entity';
@@ -11,13 +10,10 @@ import {
   DeleteDateColumn,
   Entity,
   Index,
-  JoinColumn,
-  ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
   Relation,
 } from 'typeorm';
-import { SessionEntity } from './session.entity';
 
 @Entity('users')
 @Index('UQ_user_provider', ['provider', 'providerId'], {
@@ -69,19 +65,11 @@ export class UserEntity extends AbstractEntity {
   })
   deletedAt: Date;
 
-  @OneToMany(() => SessionEntity, (session) => session.user)
-  sessions?: SessionEntity[];
-
   @OneToMany(() => PostEntity, (post) => post.user)
   posts: Relation<PostEntity[]>;
 
-  @ManyToOne(() => RoleEntity, (role) => role.users, { eager: true })
-  @JoinColumn({
-    name: 'role_id',
-    referencedColumnName: 'id',
-    foreignKeyConstraintName: 'FK_user_role',
-  })
-  role?: RoleEntity;
+  @Column({ type: 'timestamptz', name: 'verified_at', nullable: true })
+  verifiedAt?: Date;
 
   @BeforeInsert()
   @BeforeUpdate()

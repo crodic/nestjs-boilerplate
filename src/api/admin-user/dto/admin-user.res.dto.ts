@@ -1,32 +1,38 @@
+import { RoleResDto } from '@/api/role/dto/role.res.dto';
+import { WrapperType } from '@/common/types/types';
 import {
   ClassField,
-  JsonField,
+  ClassFieldOptional,
   StringField,
   StringFieldOptional,
 } from '@/decorators/field.decorators';
 import { Exclude, Expose } from 'class-transformer';
 
 @Exclude()
-export class RoleResDto {
+export class AdminUserResDto {
   @StringField()
   @Expose()
   id: string;
 
   @StringField()
   @Expose()
-  name: string;
+  username: string;
+
+  @StringField()
+  @Expose()
+  email: string;
 
   @StringFieldOptional()
   @Expose()
-  description?: string;
-
-  @JsonField()
-  @Expose()
-  permissions: string[];
+  bio?: string;
 
   @StringField()
   @Expose()
   image: string;
+
+  @ClassFieldOptional(() => RoleResDto)
+  @Expose()
+  role?: WrapperType<RoleResDto>;
 
   @ClassField(() => Date)
   @Expose()

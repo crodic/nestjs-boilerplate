@@ -1,4 +1,4 @@
-import { UserEntity } from '@/api/user/entities/user.entity';
+import { AdminUserEntity } from '@/api/admin-user/entities/admin-user.entity';
 import { AbstractEntity } from '@/database/entities/abstract.entity';
 import {
   Column,
@@ -7,6 +7,7 @@ import {
   Index,
   OneToMany,
   PrimaryGeneratedColumn,
+  Relation,
 } from 'typeorm';
 
 @Entity('roles')
@@ -31,8 +32,8 @@ export class RoleEntity extends AbstractEntity {
   @Column({ type: 'jsonb', default: [] })
   permissions: string[];
 
-  @OneToMany(() => UserEntity, (user) => user.role)
-  users: UserEntity[];
+  @OneToMany(() => AdminUserEntity, (user) => user.role)
+  users: Relation<AdminUserEntity>[];
 
   @DeleteDateColumn({
     name: 'deleted_at',

@@ -1,3 +1,4 @@
+import { AdminUserEntity } from '@/api/admin-user/entities/admin-user.entity';
 import { PostEntity } from '@/api/post/entities/post.entity';
 import { RoleEntity } from '@/api/role/entities/role.entity';
 import { UserEntity } from '@/api/user/entities/user.entity';
@@ -21,7 +22,7 @@ export type AppAbility = MongoAbility<[AppActions, Subjects]>;
 
 @Injectable()
 export class CaslAbilityFactory {
-  createForUser(user: UserEntity) {
+  createForUser(user: AdminUserEntity) {
     const { can, build } = new AbilityBuilder<AppAbility>(createMongoAbility);
 
     if (user.role?.name === SYSTEM_ROLE_NAME) {

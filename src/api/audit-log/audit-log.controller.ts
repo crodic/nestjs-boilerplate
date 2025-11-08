@@ -21,7 +21,7 @@ import { ListAuditLogReqDto } from './dto/list-audit-log.req.dto';
 import { LoadMoreAuditLogsReqDto } from './dto/load-more-audit-logs.req.dto';
 
 @ApiTags('Audit Logs')
-@Controller('audit-logs')
+@Controller({ path: 'audit-logs', version: '1' })
 @UseGuards(PoliciesGuard)
 export class AuditLogController {
   constructor(private readonly auditLogService: AuditLogService) {}

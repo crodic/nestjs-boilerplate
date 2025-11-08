@@ -8,7 +8,7 @@ import {
   VersioningType,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { NestFactory, Reflector } from '@nestjs/core';
+import { NestFactory } from '@nestjs/core';
 import compression from 'compression';
 import helmet from 'helmet';
 import { ClsService } from 'nestjs-cls';
@@ -37,7 +37,7 @@ async function bootstrap() {
 
   // Get all config and setup CORS
   const configService = app.get(ConfigService<AllConfigType>);
-  const reflector = app.get(Reflector);
+  const reflector = app.get('Reflector');
   const isDevelopment =
     configService.getOrThrow('app.nodeEnv', { infer: true }) === 'development';
   const corsOrigin = configService.getOrThrow('app.corsOrigin', {

@@ -2,9 +2,9 @@ import { CursorPaginatedDto } from '@/common/dto/cursor-pagination/paginated.dto
 import { OffsetPaginatedDto } from '@/common/dto/offset-pagination/paginated.dto';
 import { Uuid } from '@/common/types/common.type';
 import { CurrentUser } from '@/decorators/current-user.decorator';
-import { ApiAuth } from '@/decorators/http.decorators';
+import { ApiAuth, ApiAuthWithPaginate } from '@/decorators/http.decorators';
 import { CheckPolicies } from '@/decorators/policies.decorator';
-import { PoliciesGuard } from '@/guards/policies.guard';
+import { Public } from '@/decorators/public.decorator';
 import { AppAbility } from '@/libs/casl/ability.factory';
 import { AppActions, AppSubjects } from '@/utils/permissions.constant';
 import {
@@ -18,9 +18,9 @@ import {
   Patch,
   Post,
   Query,
-  UseGuards,
 } from '@nestjs/common';
-import { ApiParam, ApiTags } from '@nestjs/swagger';
+import { ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { Paginate, Paginated, PaginateQuery } from 'nestjs-paginate';
 import { CreateUserReqDto } from './dto/create-user.req.dto';
 import { ListUserReqDto } from './dto/list-user.req.dto';
 import { LoadMoreUsersReqDto } from './dto/load-more-users.req.dto';
@@ -28,14 +28,33 @@ import { UpdateUserReqDto } from './dto/update-user.req.dto';
 import { UserResDto } from './dto/user.res.dto';
 import { UserService } from './user.service';
 
-@ApiTags('users')
+@ApiTags('Users')
 @Controller({
   path: 'users',
   version: '1',
 })
-@UseGuards(PoliciesGuard)
+// @UseGuards(PoliciesGuard)
 export class UserController {
   constructor(private readonly userService: UserService) {}
+
+  @Get('/paginate')
+  @Public()
+  @ApiAuthWithPaginate(
+    { dto: UserResDto },
+    {
+      sortableColumns: ['id', 'email', 'username', 'created_at', 'updated_at'],
+      defaultSortBy: [['id', 'DESC']],
+      relations: ['posts'],
+      multiWordSearch: true,
+    },
+  )
+  @ApiQuery({ name: 'email', required: false })
+  findAll(
+    @Paginate() query: PaginateQuery,
+    @Query('email') email: string,
+  ): Promise<Paginated<UserResDto>> {
+    return this.userService.findAllUser(query, email);
+  }
 
   @ApiAuth({
     type: UserResDto,
