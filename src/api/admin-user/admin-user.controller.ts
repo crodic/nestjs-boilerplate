@@ -38,7 +38,11 @@ export class AdminUserController {
 
   @Get()
   @ApiAuthWithPaginate(
-    { dto: AdminUserResDto },
+    {
+      dto: AdminUserResDto,
+      summary: 'Get all users',
+      description: 'Return all users',
+    },
     {
       sortableColumns: ['id', 'email', 'username', 'created_at', 'updated_at'],
       defaultSortBy: [['id', 'DESC']],
