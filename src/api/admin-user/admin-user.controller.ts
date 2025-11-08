@@ -1,8 +1,6 @@
-import { CursorPaginatedDto } from '@/common/dto/cursor-pagination/paginated.dto';
-import { OffsetPaginatedDto } from '@/common/dto/offset-pagination/paginated.dto';
 import { Uuid } from '@/common/types/common.type';
 import { CurrentUser } from '@/decorators/current-user.decorator';
-import { ApiAuth } from '@/decorators/http.decorators';
+import { ApiAuth, ApiAuthWithPaginate } from '@/decorators/http.decorators';
 import { CheckPolicies } from '@/decorators/policies.decorator';
 import { PoliciesGuard } from '@/guards/policies.guard';
 import { AppAbility } from '@/libs/casl/ability.factory';
@@ -20,12 +18,13 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiParam, ApiTags } from '@nestjs/swagger';
+import { ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { Paginate, Paginated, PaginateQuery } from 'nestjs-paginate';
 import { AdminUserService } from './admin-user.service';
 import { AdminUserResDto } from './dto/admin-user.res.dto';
+import { ChangePasswordReqDto } from './dto/change-password.req.dto';
+import { ChangePasswordResDto } from './dto/change-password.res.dto';
 import { CreateAdminUserReqDto } from './dto/create-admin-user.req.dto';
-import { ListAdminUserReqDto } from './dto/list-admin-user.req.dto';
-import { LoadMoreAdminUsersReqDto } from './dto/load-more-admin-users.req.dto';
 import { UpdateAdminUserReqDto } from './dto/update-admin-user.req.dto';
 
 @ApiTags('Admin User')
@@ -37,16 +36,37 @@ import { UpdateAdminUserReqDto } from './dto/update-admin-user.req.dto';
 export class AdminUserController {
   constructor(private readonly adminUserService: AdminUserService) {}
 
+  @Get()
+  @ApiAuthWithPaginate(
+    { dto: AdminUserResDto },
+    {
+      sortableColumns: ['id', 'email', 'username', 'created_at', 'updated_at'],
+      defaultSortBy: [['id', 'DESC']],
+      relations: ['role'],
+    },
+  )
+  @ApiQuery({ name: 'email', required: false })
+  findAll(
+    @Paginate() query: PaginateQuery,
+    @Query('email') email: string,
+  ): Promise<Paginated<AdminUserResDto>> {
+    return this.adminUserService.findAllUser(query, email);
+  }
+
+  // --------------------------------------------------
+
+  @Get('me')
   @ApiAuth({
     type: AdminUserResDto,
     summary: 'Get current user',
   })
-  @Get('me')
   async getCurrentUser(
     @CurrentUser('id') userId: Uuid,
   ): Promise<AdminUserResDto> {
     return await this.adminUserService.findOne(userId);
   }
+
+  // --------------------------------------------------
 
   @Post()
   @ApiAuth({
@@ -63,36 +83,7 @@ export class AdminUserController {
     return await this.adminUserService.create(createAdminUserDto);
   }
 
-  @Get()
-  @ApiAuth({
-    type: AdminUserResDto,
-    summary: 'List users',
-    isPaginated: true,
-  })
-  @CheckPolicies((ability: AppAbility) =>
-    ability.can(AppActions.Read, AppSubjects.User),
-  )
-  async findAllUsers(
-    @Query() reqDto: ListAdminUserReqDto,
-  ): Promise<OffsetPaginatedDto<AdminUserResDto>> {
-    return await this.adminUserService.findAll(reqDto);
-  }
-
-  @Get('/load-more')
-  @ApiAuth({
-    type: AdminUserResDto,
-    summary: 'Load more users',
-    isPaginated: true,
-    paginationType: 'cursor',
-  })
-  @CheckPolicies((ability: AppAbility) =>
-    ability.can(AppActions.Read, AppSubjects.User),
-  )
-  async loadMoreUsers(
-    @Query() reqDto: LoadMoreAdminUsersReqDto,
-  ): Promise<CursorPaginatedDto<AdminUserResDto>> {
-    return await this.adminUserService.loadMoreUsers(reqDto);
-  }
+  // --------------------------------------------------
 
   @Get(':id')
   @ApiAuth({ type: AdminUserResDto, summary: 'Find user by id' })
@@ -105,6 +96,8 @@ export class AdminUserController {
   ): Promise<AdminUserResDto> {
     return await this.adminUserService.findOne(id);
   }
+
+  // --------------------------------------------------
 
   @Patch(':id')
   @ApiAuth({ type: AdminUserResDto, summary: 'Update user' })
@@ -119,6 +112,8 @@ export class AdminUserController {
     return this.adminUserService.update(id, reqDto);
   }
 
+  // --------------------------------------------------
+
   @Delete(':id')
   @ApiAuth({
     summary: 'Delete user',
@@ -132,9 +127,18 @@ export class AdminUserController {
     return this.adminUserService.remove(id);
   }
 
-  @ApiAuth()
+  // --------------------------------------------------
+
+  @ApiAuth({
+    type: ChangePasswordResDto,
+    summary: 'Change password',
+    errorResponses: [400, 401, 403, 404, 500],
+  })
   @Post('me/change-password')
-  async changePassword() {
-    return 'change-password';
+  async changePassword(
+    @CurrentUser('id') userId: Uuid,
+    @Body() reqDto: ChangePasswordReqDto,
+  ): Promise<ChangePasswordResDto> {
+    return this.adminUserService.changePassword(userId, reqDto);
   }
 }

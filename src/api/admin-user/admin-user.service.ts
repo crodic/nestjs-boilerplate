@@ -1,13 +1,9 @@
-import { CursorPaginationDto } from '@/common/dto/cursor-pagination/cursor-pagination.dto';
-import { CursorPaginatedDto } from '@/common/dto/cursor-pagination/paginated.dto';
-import { OffsetPaginatedDto } from '@/common/dto/offset-pagination/paginated.dto';
 import { Uuid } from '@/common/types/common.type';
 import { SYSTEM_USER_ID } from '@/constants/app.constant';
 import { CacheKey } from '@/constants/cache.constant';
 import { ErrorCode } from '@/constants/error-code.constant';
 import { ValidationException } from '@/exceptions/validation.exception';
-import { buildPaginator } from '@/utils/cursor-pagination';
-import { paginate } from '@/utils/offset-pagination';
+import { verifyPassword } from '@/utils/password.util';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -15,11 +11,12 @@ import assert from 'assert';
 import { Cache } from 'cache-manager';
 import { plainToInstance } from 'class-transformer';
 import { ClsService } from 'nestjs-cls';
+import { paginate, Paginated, PaginateQuery } from 'nestjs-paginate';
 import { EntityManager, Repository } from 'typeorm';
 import { AdminUserResDto } from './dto/admin-user.res.dto';
+import { ChangePasswordReqDto } from './dto/change-password.req.dto';
+import { ChangePasswordResDto } from './dto/change-password.res.dto';
 import { CreateAdminUserReqDto } from './dto/create-admin-user.req.dto';
-import { ListAdminUserReqDto } from './dto/list-admin-user.req.dto';
-import { LoadMoreAdminUsersReqDto } from './dto/load-more-admin-users.req.dto';
 import { UpdateAdminUserReqDto } from './dto/update-admin-user.req.dto';
 import { AdminUserEntity } from './entities/admin-user.entity';
 
@@ -92,52 +89,32 @@ export class AdminUserService {
     return plainToInstance(AdminUserResDto, savedUser);
   }
 
-  async findAll(
-    reqDto: ListAdminUserReqDto,
-  ): Promise<OffsetPaginatedDto<AdminUserResDto>> {
-    const query = this.adminUserRepository
-      .createQueryBuilder('user')
-      .orderBy('user.createdAt', 'DESC');
-    const [users, metaDto] = await paginate<AdminUserEntity>(query, reqDto, {
-      skipCount: false,
-      takeAll: false,
-    });
-    return new OffsetPaginatedDto(
-      plainToInstance(AdminUserResDto, users),
-      metaDto,
-    );
-  }
+  async findAllUser(
+    query: PaginateQuery,
+    email: string,
+  ): Promise<Paginated<AdminUserResDto>> {
+    const queryBuilder = this.adminUserRepository.createQueryBuilder('admin');
 
-  async loadMoreUsers(
-    reqDto: LoadMoreAdminUsersReqDto,
-  ): Promise<CursorPaginatedDto<AdminUserResDto>> {
-    const queryBuilder =
-      this.adminUserRepository.createQueryBuilder('admin_user');
-    const paginator = buildPaginator({
-      entity: AdminUserEntity,
-      alias: 'admin_user',
-      paginationKeys: ['createdAt'],
-      query: {
-        limit: reqDto.limit,
-        order: 'DESC',
-        afterCursor: reqDto.afterCursor,
-        beforeCursor: reqDto.beforeCursor,
-      },
+    if (email) {
+      queryBuilder.andWhere('admin.email LIKE :title', {
+        title: `%${email}%`,
+      });
+    }
+
+    const result = await paginate(query, queryBuilder, {
+      sortableColumns: ['id', 'email', 'username', 'createdAt', 'updatedAt'],
+      searchableColumns: ['username', 'email'],
+      ignoreSearchByInQueryParam: true,
+      defaultSortBy: [['id', 'DESC']],
+      relations: ['role'],
     });
 
-    const { data, cursor } = await paginator.paginate(queryBuilder);
-
-    const metaDto = new CursorPaginationDto(
-      data.length,
-      cursor.afterCursor,
-      cursor.beforeCursor,
-      reqDto,
-    );
-
-    return new CursorPaginatedDto(
-      plainToInstance(AdminUserResDto, data),
-      metaDto,
-    );
+    return {
+      ...result,
+      data: plainToInstance(AdminUserResDto, result.data, {
+        excludeExtraneousValues: true,
+      }),
+    } as Paginated<AdminUserResDto>;
   }
 
   async findOne(id: Uuid): Promise<AdminUserResDto> {
@@ -160,5 +137,28 @@ export class AdminUserService {
   async remove(id: Uuid) {
     await this.adminUserRepository.findOneByOrFail({ id });
     await this.adminUserRepository.softDelete(id);
+  }
+
+  async changePassword(
+    id: Uuid,
+    dto: ChangePasswordReqDto,
+  ): Promise<ChangePasswordResDto> {
+    const user = await this.adminUserRepository.findOneByOrFail({ id });
+    const isPasswordValid = await verifyPassword(dto.password, user.password);
+    if (!isPasswordValid) {
+      throw new ValidationException(ErrorCode.E002);
+    }
+    if (dto.newPassword !== dto.confirmNewPassword) {
+      throw new ValidationException(ErrorCode.E003);
+    }
+    user.password = dto.newPassword;
+    user.updatedBy = id;
+
+    await this.adminUserRepository.save(user);
+
+    return plainToInstance(ChangePasswordResDto, {
+      message: 'Change password successfully',
+      user: user.toDto(AdminUserResDto),
+    });
   }
 }

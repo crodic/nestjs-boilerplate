@@ -1,10 +1,8 @@
-import { CursorPaginatedDto } from '@/common/dto/cursor-pagination/paginated.dto';
-import { OffsetPaginatedDto } from '@/common/dto/offset-pagination/paginated.dto';
 import { Uuid } from '@/common/types/common.type';
 import { CurrentUser } from '@/decorators/current-user.decorator';
 import { ApiAuth, ApiAuthWithPaginate } from '@/decorators/http.decorators';
 import { CheckPolicies } from '@/decorators/policies.decorator';
-import { Public } from '@/decorators/public.decorator';
+import { PoliciesGuard } from '@/guards/policies.guard';
 import { AppAbility } from '@/libs/casl/ability.factory';
 import { AppActions, AppSubjects } from '@/utils/permissions.constant';
 import {
@@ -18,12 +16,13 @@ import {
   Patch,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { Paginate, Paginated, PaginateQuery } from 'nestjs-paginate';
+import { ChangePasswordReqDto } from './dto/change-password.req.dto';
+import { ChangePasswordResDto } from './dto/change-password.res.dto';
 import { CreateUserReqDto } from './dto/create-user.req.dto';
-import { ListUserReqDto } from './dto/list-user.req.dto';
-import { LoadMoreUsersReqDto } from './dto/load-more-users.req.dto';
 import { UpdateUserReqDto } from './dto/update-user.req.dto';
 import { UserResDto } from './dto/user.res.dto';
 import { UserService } from './user.service';
@@ -33,12 +32,11 @@ import { UserService } from './user.service';
   path: 'users',
   version: '1',
 })
-// @UseGuards(PoliciesGuard)
+@UseGuards(PoliciesGuard)
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Get('/paginate')
-  @Public()
+  @Get()
   @ApiAuthWithPaginate(
     { dto: UserResDto },
     {
@@ -80,37 +78,6 @@ export class UserController {
     return await this.userService.create(createUserDto);
   }
 
-  @Get()
-  @ApiAuth({
-    type: UserResDto,
-    summary: 'List users',
-    isPaginated: true,
-  })
-  @CheckPolicies((ability: AppAbility) =>
-    ability.can(AppActions.Read, AppSubjects.User),
-  )
-  async findAllUsers(
-    @Query() reqDto: ListUserReqDto,
-  ): Promise<OffsetPaginatedDto<UserResDto>> {
-    return await this.userService.findAll(reqDto);
-  }
-
-  @Get('/load-more')
-  @ApiAuth({
-    type: UserResDto,
-    summary: 'Load more users',
-    isPaginated: true,
-    paginationType: 'cursor',
-  })
-  @CheckPolicies((ability: AppAbility) =>
-    ability.can(AppActions.Read, AppSubjects.User),
-  )
-  async loadMoreUsers(
-    @Query() reqDto: LoadMoreUsersReqDto,
-  ): Promise<CursorPaginatedDto<UserResDto>> {
-    return await this.userService.loadMoreUsers(reqDto);
-  }
-
   @Get(':id')
   @ApiAuth({ type: UserResDto, summary: 'Find user by id' })
   @ApiParam({ name: 'id', type: 'String' })
@@ -147,9 +114,16 @@ export class UserController {
     return this.userService.remove(id);
   }
 
-  @ApiAuth()
+  @ApiAuth({
+    type: ChangePasswordReqDto,
+    summary: 'Change password',
+    errorResponses: [400, 401, 403, 404, 500],
+  })
   @Post('me/change-password')
-  async changePassword() {
-    return 'change-password';
+  async changePassword(
+    @CurrentUser('id') userId: Uuid,
+    @Body() reqDto: ChangePasswordReqDto,
+  ): Promise<ChangePasswordResDto> {
+    return this.userService.changePassword(userId, reqDto);
   }
 }

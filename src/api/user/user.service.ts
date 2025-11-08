@@ -1,26 +1,18 @@
-import { CursorPaginationDto } from '@/common/dto/cursor-pagination/cursor-pagination.dto';
-import { CursorPaginatedDto } from '@/common/dto/cursor-pagination/paginated.dto';
-import { OffsetPaginatedDto } from '@/common/dto/offset-pagination/paginated.dto';
 import { Uuid } from '@/common/types/common.type';
 import { SYSTEM_USER_ID } from '@/constants/app.constant';
 import { ErrorCode } from '@/constants/error-code.constant';
 import { ValidationException } from '@/exceptions/validation.exception';
-import { buildPaginator } from '@/utils/cursor-pagination';
-import { paginate } from '@/utils/offset-pagination';
+import { verifyPassword } from '@/utils/password.util';
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import assert from 'assert';
 import { plainToInstance } from 'class-transformer';
 import { ClsService } from 'nestjs-cls';
-import {
-  Paginated,
-  paginate as paginateLib,
-  PaginateQuery,
-} from 'nestjs-paginate';
+import { paginate, Paginated, PaginateQuery } from 'nestjs-paginate';
 import { Repository } from 'typeorm';
+import { ChangePasswordReqDto } from './dto/change-password.req.dto';
+import { ChangePasswordResDto } from './dto/change-password.res.dto';
 import { CreateUserReqDto } from './dto/create-user.req.dto';
-import { ListUserReqDto } from './dto/list-user.req.dto';
-import { LoadMoreUsersReqDto } from './dto/load-more-users.req.dto';
 import { UpdateUserReqDto } from './dto/update-user.req.dto';
 import { UserResDto } from './dto/user.res.dto';
 import { UserEntity } from './entities/user.entity';
@@ -47,7 +39,7 @@ export class UserService {
       });
     }
 
-    const result = await paginateLib(query, queryBuilder, {
+    const result = await paginate(query, queryBuilder, {
       sortableColumns: ['id', 'email', 'username', 'createdAt', 'updatedAt'],
       searchableColumns: ['username', 'email'],
       ignoreSearchByInQueryParam: true,
@@ -98,47 +90,6 @@ export class UserService {
     return plainToInstance(UserResDto, savedUser);
   }
 
-  async findAll(
-    reqDto: ListUserReqDto,
-  ): Promise<OffsetPaginatedDto<UserResDto>> {
-    const query = this.userRepository
-      .createQueryBuilder('user')
-      .orderBy('user.createdAt', 'DESC');
-    const [users, metaDto] = await paginate<UserEntity>(query, reqDto, {
-      skipCount: false,
-      takeAll: false,
-    });
-    return new OffsetPaginatedDto(plainToInstance(UserResDto, users), metaDto);
-  }
-
-  async loadMoreUsers(
-    reqDto: LoadMoreUsersReqDto,
-  ): Promise<CursorPaginatedDto<UserResDto>> {
-    const queryBuilder = this.userRepository.createQueryBuilder('user');
-    const paginator = buildPaginator({
-      entity: UserEntity,
-      alias: 'user',
-      paginationKeys: ['createdAt'],
-      query: {
-        limit: reqDto.limit,
-        order: 'DESC',
-        afterCursor: reqDto.afterCursor,
-        beforeCursor: reqDto.beforeCursor,
-      },
-    });
-
-    const { data, cursor } = await paginator.paginate(queryBuilder);
-
-    const metaDto = new CursorPaginationDto(
-      data.length,
-      cursor.afterCursor,
-      cursor.beforeCursor,
-      reqDto,
-    );
-
-    return new CursorPaginatedDto(plainToInstance(UserResDto, data), metaDto);
-  }
-
   async findOne(id: Uuid): Promise<UserResDto> {
     assert(id, 'id is required');
     const user = await this.userRepository.findOneByOrFail({ id });
@@ -159,5 +110,28 @@ export class UserService {
   async remove(id: Uuid) {
     await this.userRepository.findOneByOrFail({ id });
     await this.userRepository.softDelete(id);
+  }
+
+  async changePassword(
+    id: Uuid,
+    dto: ChangePasswordReqDto,
+  ): Promise<ChangePasswordResDto> {
+    const user = await this.userRepository.findOneByOrFail({ id });
+    const isPasswordValid = await verifyPassword(dto.password, user.password);
+    if (!isPasswordValid) {
+      throw new ValidationException(ErrorCode.E002);
+    }
+    if (dto.newPassword !== dto.confirmNewPassword) {
+      throw new ValidationException(ErrorCode.E003);
+    }
+    user.password = dto.newPassword;
+    user.updatedBy = id;
+
+    await this.userRepository.save(user);
+
+    return plainToInstance(ChangePasswordResDto, {
+      message: 'Change password successfully',
+      user: user.toDto(UserResDto),
+    });
   }
 }
