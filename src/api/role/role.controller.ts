@@ -1,5 +1,5 @@
 import { Uuid } from '@/common/types/common.type';
-import { ApiAuth } from '@/decorators/http.decorators';
+import { ApiAuth, ApiAuthWithPaginate } from '@/decorators/http.decorators';
 import { CheckPolicies } from '@/decorators/policies.decorator';
 import { PoliciesGuard } from '@/guards/policies.guard';
 import { AppAbility } from '@/libs/casl/ability.factory';
@@ -13,9 +13,11 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiParam, ApiTags } from '@nestjs/swagger';
+import { ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { Paginate, Paginated, PaginateQuery } from 'nestjs-paginate';
 import { CreateRoleReqDto } from './dto/create-role.req.dto';
 import { RoleResDto } from './dto/role.res.dto';
 import { UpdateRoleReqDto } from './dto/update-role.req.dto';
@@ -26,6 +28,33 @@ import { RoleService } from './role.service';
 @UseGuards(PoliciesGuard)
 export class RoleController {
   constructor(private readonly roleService: RoleService) {}
+
+  @Get()
+  @ApiAuthWithPaginate(
+    {
+      type: RoleResDto,
+      summary: 'Get all roles',
+      description: 'Return all roles',
+      statusCode: 200,
+    },
+    {
+      sortableColumns: [
+        'id',
+        'name',
+        'description',
+        'created_at',
+        'updated_at',
+      ],
+      defaultSortBy: [['id', 'DESC']],
+    },
+  )
+  @ApiQuery({ name: 'name', required: false })
+  findAll(
+    @Paginate() query: PaginateQuery,
+    @Query('name') name: string,
+  ): Promise<Paginated<RoleResDto>> {
+    return this.roleService.findAll(query, name);
+  }
 
   @Post()
   @ApiAuth()

@@ -19,7 +19,12 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
-import { Paginate, Paginated, PaginateQuery } from 'nestjs-paginate';
+import {
+  FilterOperator,
+  Paginate,
+  Paginated,
+  PaginateQuery,
+} from 'nestjs-paginate';
 import { ChangePasswordReqDto } from './dto/change-password.req.dto';
 import { ChangePasswordResDto } from './dto/change-password.res.dto';
 import { CreateUserReqDto } from './dto/create-user.req.dto';
@@ -44,6 +49,9 @@ export class UserController {
       defaultSortBy: [['id', 'DESC']],
       relations: ['posts'],
       multiWordSearch: true,
+      filterableColumns: {
+        createdAt: [FilterOperator.GTE, FilterOperator.LTE],
+      },
     },
   )
   @ApiQuery({ name: 'email', required: false })

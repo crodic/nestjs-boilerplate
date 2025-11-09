@@ -8,7 +8,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import assert from 'assert';
 import { plainToInstance } from 'class-transformer';
 import { ClsService } from 'nestjs-cls';
-import { paginate, Paginated, PaginateQuery } from 'nestjs-paginate';
+import {
+  FilterOperator,
+  paginate,
+  Paginated,
+  PaginateQuery,
+} from 'nestjs-paginate';
 import { Repository } from 'typeorm';
 import { ChangePasswordReqDto } from './dto/change-password.req.dto';
 import { ChangePasswordResDto } from './dto/change-password.res.dto';
@@ -45,6 +50,9 @@ export class UserService {
       ignoreSearchByInQueryParam: true,
       defaultSortBy: [['id', 'DESC']],
       relations: ['posts'],
+      filterableColumns: {
+        createdAt: [FilterOperator.GTE, FilterOperator.LTE],
+      },
     });
 
     return {
