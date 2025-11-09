@@ -38,7 +38,7 @@ export class UserController {
 
   @Get()
   @ApiAuthWithPaginate(
-    { dto: UserResDto },
+    { type: UserResDto },
     {
       sortableColumns: ['id', 'email', 'username', 'created_at', 'updated_at'],
       defaultSortBy: [['id', 'DESC']],

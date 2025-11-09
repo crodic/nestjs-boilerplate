@@ -17,11 +17,9 @@ import {
 import { STATUS_CODES } from 'http';
 import { PaginateConfig, PaginatedSwaggerDocs } from 'nestjs-paginate';
 import { Public } from './public.decorator';
-import { ApiPaginatedResponse } from './swagger.decorators';
 
 type ApiResponseType = number;
 type ApiAuthType = 'basic' | 'api-key' | 'jwt';
-type PaginationType = 'offset' | 'cursor';
 
 interface IApiOptions<T extends Type<any>> {
   type?: T;
@@ -29,22 +27,15 @@ interface IApiOptions<T extends Type<any>> {
   description?: string;
   errorResponses?: ApiResponseType[];
   statusCode?: HttpStatus;
-  isPaginated?: boolean;
-  paginationType?: PaginationType;
 }
-
-type IApiPublicOptions = IApiOptions<Type<any>>;
 
 interface IApiAuthOptions extends IApiOptions<Type<any>> {
   auths?: ApiAuthType[];
 }
 
-interface IApiAuthWithPaginateOptions extends IApiOptions<Type<any>> {
-  auths?: ApiAuthType[];
-  dto?: Type<any>;
-}
-
-export const ApiPublic = (options: IApiPublicOptions = {}): MethodDecorator => {
+export const ApiPublic = (
+  options: IApiOptions<Type<any>> = {},
+): MethodDecorator => {
   const defaultStatusCode = HttpStatus.OK;
   const defaultErrorResponses = [
     HttpStatus.BAD_REQUEST,
@@ -53,14 +44,8 @@ export const ApiPublic = (options: IApiPublicOptions = {}): MethodDecorator => {
     HttpStatus.UNPROCESSABLE_ENTITY,
     HttpStatus.INTERNAL_SERVER_ERROR,
   ];
-  const isPaginated = options.isPaginated || false;
-  const ok = {
-    type: options.type,
-    description: options?.description ?? 'OK',
-    paginationType: options.paginationType || 'offset',
-  };
 
-  const errorResponses = (options.errorResponses || defaultErrorResponses)?.map(
+  const errorResponses = (options.errorResponses || defaultErrorResponses).map(
     (statusCode) =>
       ApiResponse({
         status: statusCode,
@@ -71,9 +56,17 @@ export const ApiPublic = (options: IApiPublicOptions = {}): MethodDecorator => {
 
   return applyDecorators(
     Public(),
-    ApiOperation({ summary: options?.summary }),
+    ApiOperation({ summary: options.summary }),
     HttpCode(options.statusCode || defaultStatusCode),
-    isPaginated ? ApiPaginatedResponse(ok) : ApiOkResponse(ok),
+    options.statusCode === HttpStatus.CREATED
+      ? ApiCreatedResponse({
+          type: options.type,
+          description: options.description ?? 'Created',
+        })
+      : ApiOkResponse({
+          type: options.type,
+          description: options.description ?? 'OK',
+        }),
     ...errorResponses,
   );
 };
@@ -88,15 +81,10 @@ export const ApiAuth = (options: IApiAuthOptions = {}): MethodDecorator => {
     HttpStatus.UNPROCESSABLE_ENTITY,
     HttpStatus.INTERNAL_SERVER_ERROR,
   ];
-  const isPaginated = options.isPaginated || false;
-  const ok = {
-    type: options.type,
-    description: options?.description ?? 'OK',
-    paginationType: options.paginationType || 'offset',
-  };
+
   const auths = options.auths || ['jwt'];
 
-  const errorResponses = (options.errorResponses || defaultErrorResponses)?.map(
+  const errorResponses = (options.errorResponses || defaultErrorResponses).map(
     (statusCode) =>
       ApiResponse({
         status: statusCode,
@@ -117,20 +105,24 @@ export const ApiAuth = (options: IApiAuthOptions = {}): MethodDecorator => {
   });
 
   return applyDecorators(
-    ApiOperation({ summary: options?.summary }),
+    ApiOperation({ summary: options.summary }),
     HttpCode(options.statusCode || defaultStatusCode),
-    isPaginated
-      ? ApiPaginatedResponse(ok)
-      : options.statusCode === 201
-        ? ApiCreatedResponse(ok)
-        : ApiOkResponse(ok),
+    options.statusCode === HttpStatus.CREATED
+      ? ApiCreatedResponse({
+          type: options.type,
+          description: options.description ?? 'Created',
+        })
+      : ApiOkResponse({
+          type: options.type,
+          description: options.description ?? 'OK',
+        }),
     ...authDecorators,
     ...errorResponses,
   );
 };
 
 export const ApiAuthWithPaginate = (
-  options: IApiAuthWithPaginateOptions = {},
+  options: IApiAuthOptions = {},
   paginateOptions?: PaginateConfig<any>,
 ): MethodDecorator => {
   const defaultStatusCode = HttpStatus.OK;
@@ -142,9 +134,10 @@ export const ApiAuthWithPaginate = (
     HttpStatus.UNPROCESSABLE_ENTITY,
     HttpStatus.INTERNAL_SERVER_ERROR,
   ];
+
   const auths = options.auths || ['jwt'];
 
-  const errorResponses = (options.errorResponses || defaultErrorResponses)?.map(
+  const errorResponses = (options.errorResponses || defaultErrorResponses).map(
     (statusCode) =>
       ApiResponse({
         status: statusCode,
@@ -165,9 +158,9 @@ export const ApiAuthWithPaginate = (
   });
 
   return applyDecorators(
-    ApiOperation({ summary: options?.summary }),
+    ApiOperation({ summary: options.summary }),
     HttpCode(options.statusCode || defaultStatusCode),
-    PaginatedSwaggerDocs(options.dto, paginateOptions),
+    PaginatedSwaggerDocs(options.type, paginateOptions),
     ...authDecorators,
     ...errorResponses,
   );

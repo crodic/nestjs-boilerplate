@@ -1,11 +1,6 @@
-import { CursorPaginationDto } from '@/common/dto/cursor-pagination/cursor-pagination.dto';
-import { CursorPaginatedDto } from '@/common/dto/cursor-pagination/paginated.dto';
-import { OffsetPaginatedDto } from '@/common/dto/offset-pagination/paginated.dto';
 import { Uuid } from '@/common/types/common.type';
 import { SYSTEM_USER_ID } from '@/constants/app.constant';
 import { CacheKey } from '@/constants/cache.constant';
-import { buildPaginator } from '@/utils/cursor-pagination';
-import { paginate } from '@/utils/offset-pagination';
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -13,8 +8,6 @@ import { plainToInstance } from 'class-transformer';
 import { assert } from 'console';
 import { EntityManager, Repository } from 'typeorm';
 import { CreateRoleReqDto } from './dto/create-role.req.dto';
-import { ListRoleReqDto } from './dto/list-role.req.dto';
-import { LoadMoreRoleReqDto } from './dto/load-more-roles.req.dto';
 import { RoleResDto } from './dto/role.res.dto';
 import { UpdateRoleReqDto } from './dto/update-role.req.dto';
 import { RoleEntity } from './entities/role.entity';
@@ -72,45 +65,14 @@ export class RoleService {
     return plainToInstance(RoleResDto, savedRole);
   }
 
-  async findAll(
-    reqDto: ListRoleReqDto,
-  ): Promise<OffsetPaginatedDto<RoleResDto>> {
-    const query = this.roleRepository
-      .createQueryBuilder('role')
-      .orderBy('role.createdAt', 'DESC');
-    const [roles, metaDto] = await paginate<RoleEntity>(query, reqDto, {
-      skipCount: false,
-      takeAll: false,
+  async formOptions(): Promise<RoleResDto[]> {
+    const query = await this.roleRepository.find();
+
+    console.log(query);
+
+    return plainToInstance(RoleResDto, query, {
+      excludeExtraneousValues: true,
     });
-    return new OffsetPaginatedDto(plainToInstance(RoleResDto, roles), metaDto);
-  }
-
-  async loadMoreUsers(
-    reqDto: LoadMoreRoleReqDto,
-  ): Promise<CursorPaginatedDto<RoleResDto>> {
-    const queryBuilder = this.roleRepository.createQueryBuilder('role');
-    const paginator = buildPaginator({
-      entity: RoleEntity,
-      alias: 'role',
-      paginationKeys: ['createdAt'],
-      query: {
-        limit: reqDto.limit,
-        order: 'DESC',
-        afterCursor: reqDto.afterCursor,
-        beforeCursor: reqDto.beforeCursor,
-      },
-    });
-
-    const { data, cursor } = await paginator.paginate(queryBuilder);
-
-    const metaDto = new CursorPaginationDto(
-      data.length,
-      cursor.afterCursor,
-      cursor.beforeCursor,
-      reqDto,
-    );
-
-    return new CursorPaginatedDto(plainToInstance(RoleResDto, data), metaDto);
   }
 
   async findOne(id: Uuid): Promise<RoleResDto> {

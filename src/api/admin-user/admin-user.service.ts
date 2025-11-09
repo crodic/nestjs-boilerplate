@@ -11,7 +11,12 @@ import assert from 'assert';
 import { Cache } from 'cache-manager';
 import { plainToInstance } from 'class-transformer';
 import { ClsService } from 'nestjs-cls';
-import { paginate, Paginated, PaginateQuery } from 'nestjs-paginate';
+import {
+  FilterOperator,
+  paginate,
+  Paginated,
+  PaginateQuery,
+} from 'nestjs-paginate';
 import { EntityManager, Repository } from 'typeorm';
 import { AdminUserResDto } from './dto/admin-user.res.dto';
 import { ChangePasswordReqDto } from './dto/change-password.req.dto';
@@ -103,9 +108,12 @@ export class AdminUserService {
 
     const result = await paginate(query, queryBuilder, {
       sortableColumns: ['id', 'email', 'username', 'createdAt', 'updatedAt'],
-      searchableColumns: ['username', 'email'],
+      searchableColumns: ['username', 'email', 'role.name'],
       ignoreSearchByInQueryParam: true,
       defaultSortBy: [['id', 'DESC']],
+      filterableColumns: {
+        'role.id': [FilterOperator.IN],
+      },
       relations: ['role'],
     });
 

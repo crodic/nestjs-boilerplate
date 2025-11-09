@@ -2,6 +2,7 @@ export enum AppSubjects {
   User = 'User',
   Role = 'Role',
   Log = 'Log',
+  Admin = 'Admin',
 
   All = 'all',
 }
@@ -17,6 +18,12 @@ export enum AppActions {
 }
 
 export const ALL_PERMISSIONS = [
+  // Admin
+  { name: `${AppActions.Read}:${AppSubjects.Admin}` },
+  { name: `${AppActions.Create}:${AppSubjects.Admin}` },
+  { name: `${AppActions.Update}:${AppSubjects.Admin}` },
+  { name: `${AppActions.Delete}:${AppSubjects.Admin}` },
+
   // User
   { name: `${AppActions.Read}:${AppSubjects.User}` },
   { name: `${AppActions.Create}:${AppSubjects.User}` },

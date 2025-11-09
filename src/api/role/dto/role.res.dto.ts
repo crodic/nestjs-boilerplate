@@ -1,6 +1,6 @@
 import {
+  ArrayField,
   ClassField,
-  JsonField,
   StringField,
   StringFieldOptional,
 } from '@/decorators/field.decorators';
@@ -20,13 +20,9 @@ export class RoleResDto {
   @Expose()
   description?: string;
 
-  @JsonField()
+  @ArrayField(String, { example: ['read:User', 'create:User'] })
   @Expose()
   permissions: string[];
-
-  @StringField()
-  @Expose()
-  image: string;
 
   @ClassField(() => Date)
   @Expose()

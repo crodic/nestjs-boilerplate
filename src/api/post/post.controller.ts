@@ -27,7 +27,7 @@ export class PostController {
 
   @Get('/')
   @ApiAuthWithPaginate(
-    { dto: PostResDto },
+    { type: PostResDto },
     {
       sortableColumns: ['id', 'title', 'content'],
       defaultSortBy: [['id', 'DESC']],

@@ -39,7 +39,7 @@ export class AdminUserController {
   @Get()
   @ApiAuthWithPaginate(
     {
-      dto: AdminUserResDto,
+      type: AdminUserResDto,
       summary: 'Get all users',
       description: 'Return all users',
     },

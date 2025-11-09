@@ -1,4 +1,3 @@
-import { OffsetPaginatedDto } from '@/common/dto/offset-pagination/paginated.dto';
 import { Uuid } from '@/common/types/common.type';
 import { ApiAuth } from '@/decorators/http.decorators';
 import { CheckPolicies } from '@/decorators/policies.decorator';
@@ -14,12 +13,10 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
-  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ApiParam, ApiTags } from '@nestjs/swagger';
 import { CreateRoleReqDto } from './dto/create-role.req.dto';
-import { ListRoleReqDto } from './dto/list-role.req.dto';
 import { RoleResDto } from './dto/role.res.dto';
 import { UpdateRoleReqDto } from './dto/update-role.req.dto';
 import { RoleService } from './role.service';
@@ -39,19 +36,17 @@ export class RoleController {
     return await this.roleService.create(reqDto);
   }
 
-  @Get()
+  @Get('form-options')
   @ApiAuth({
     type: RoleResDto,
-    summary: 'List roles',
-    isPaginated: true,
+    summary: 'List all roles',
   })
-  @CheckPolicies((ability: AppAbility) =>
-    ability.can(AppActions.Read, AppSubjects.Role),
+  @CheckPolicies(
+    (ability: AppAbility) => ability.can(AppActions.Read, AppSubjects.Role),
+    (ability: AppAbility) => ability.can(AppActions.Read, AppSubjects.User),
   )
-  findAll(
-    @Query() reqDto: ListRoleReqDto,
-  ): Promise<OffsetPaginatedDto<RoleResDto>> {
-    return this.roleService.findAll(reqDto);
+  roleFormOptions() {
+    return this.roleService.formOptions();
   }
 
   @Get(':id')
