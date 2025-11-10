@@ -137,7 +137,7 @@ export class AuthController {
 
   @ApiAuth({
     summary: '[Admin - User] Logout for portal and client',
-    errorResponses: [400, 401, 403, 500],
+    errorResponses: [304, 500, 401, 403],
   })
   @Post('logout')
   async logout(@CurrentUser() userToken: JwtPayloadType): Promise<void> {

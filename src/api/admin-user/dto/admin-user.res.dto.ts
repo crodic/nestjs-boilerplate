@@ -1,12 +1,13 @@
 import { RoleResDto } from '@/api/role/dto/role.res.dto';
 import { WrapperType } from '@/common/types/types';
 import {
+  BooleanField,
   ClassField,
   ClassFieldOptional,
   StringField,
   StringFieldOptional,
 } from '@/decorators/field.decorators';
-import { Exclude, Expose } from 'class-transformer';
+import { Exclude, Expose, Transform } from 'class-transformer';
 
 @Exclude()
 export class AdminUserResDto {
@@ -45,6 +46,11 @@ export class AdminUserResDto {
   @ClassFieldOptional(() => RoleResDto)
   @Expose()
   role?: WrapperType<RoleResDto>;
+
+  @BooleanField()
+  @Transform(({ value }) => !!value)
+  @Expose()
+  verifiedAt?: boolean;
 
   @ClassField(() => Date)
   @Expose()

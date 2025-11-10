@@ -1,10 +1,10 @@
 import { Uuid } from '@/common/types/common.type';
 import {
-  ClassField,
   EmailField,
   PasswordField,
   StringField,
   StringFieldOptional,
+  UUIDField,
 } from '@/decorators/field.decorators';
 import { Trim } from '@/decorators/transform.decorators';
 import { lowerCaseTransformer } from '@/utils/transformers/lower-case.transformer';
@@ -35,6 +35,6 @@ export class CreateAdminUserReqDto {
   @StringFieldOptional()
   image?: string;
 
-  @ClassField(() => String)
+  @UUIDField()
   roleId!: Uuid;
 }

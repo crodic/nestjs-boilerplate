@@ -102,7 +102,7 @@ export class AuthService {
       user && (await verifyPassword(password, user.password));
 
     if (!isPasswordValid) {
-      throw new UnauthorizedException();
+      throw new BadRequestException({ message: 'Invalid credentials' });
     }
 
     const hash = crypto

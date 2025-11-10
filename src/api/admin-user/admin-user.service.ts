@@ -60,7 +60,16 @@ export class AdminUserService {
   }
 
   async create(dto: CreateAdminUserReqDto): Promise<AdminUserResDto> {
-    const { username, email, password, bio, image } = dto;
+    const {
+      username,
+      email,
+      password,
+      bio,
+      image,
+      firstName,
+      lastName,
+      roleId,
+    } = dto;
 
     // check uniqueness of username/email
     const user = await this.adminUserRepository.findOne({
@@ -80,10 +89,13 @@ export class AdminUserService {
 
     const newUser = new AdminUserEntity({
       username,
+      firstName,
+      lastName,
       email,
       password,
       bio,
       image,
+      roleId,
       createdBy: this.cls.get('userId') || SYSTEM_USER_ID,
       updatedBy: this.cls.get('userId') || SYSTEM_USER_ID,
     });
