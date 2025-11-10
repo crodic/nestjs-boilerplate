@@ -23,10 +23,6 @@ export class AuditLogResDto {
   @Expose()
   action: string;
 
-  @StringField()
-  @Expose()
-  image: string;
-
   @JsonFieldOptional()
   @Expose()
   oldValue?: object;

@@ -1,5 +1,5 @@
 import { Uuid } from '@/common/types/common.type';
-import { ApiAuth } from '@/decorators/http.decorators';
+import { ApiAuth, ApiAuthWithPaginate } from '@/decorators/http.decorators';
 import { CheckPolicies } from '@/decorators/policies.decorator';
 import { PoliciesGuard } from '@/guards/policies.guard';
 import { AppAbility } from '@/libs/casl/ability.factory';
@@ -12,6 +12,12 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiParam, ApiTags } from '@nestjs/swagger';
+import {
+  FilterOperator,
+  Paginate,
+  Paginated,
+  PaginateQuery,
+} from 'nestjs-paginate';
 import { AuditLogService } from './audit-log.service';
 import { AuditLogResDto } from './dto/audit-log.res.dto';
 
@@ -20,6 +26,32 @@ import { AuditLogResDto } from './dto/audit-log.res.dto';
 @UseGuards(PoliciesGuard)
 export class AuditLogController {
   constructor(private readonly auditLogService: AuditLogService) {}
+
+  @Get()
+  @ApiAuthWithPaginate(
+    {
+      type: AuditLogResDto,
+      statusCode: 200,
+      summary: 'Get paginated audit logs',
+    },
+    {
+      sortableColumns: ['id', 'created_at'],
+      defaultSortBy: [['id', 'DESC']],
+      relations: ['posts'],
+      multiWordSearch: true,
+      filterableColumns: {
+        createdAt: [FilterOperator.GTE, FilterOperator.LTE],
+      },
+    },
+  )
+  @CheckPolicies((ability: AppAbility) =>
+    ability.can(AppActions.Read, AppSubjects.Log),
+  )
+  findAll(
+    @Paginate() query: PaginateQuery,
+  ): Promise<Paginated<AuditLogResDto>> {
+    return this.auditLogService.findAll(query);
+  }
 
   @Get(':id')
   @ApiAuth({ type: AuditLogResDto, summary: 'Find audit log by id' })
