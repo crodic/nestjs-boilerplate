@@ -43,7 +43,7 @@ export class UserController {
 
   @Get()
   @ApiAuthWithPaginate(
-    { type: UserResDto },
+    { type: UserResDto, summary: 'Get all users with pagination' },
     {
       sortableColumns: ['id', 'email', 'username', 'created_at', 'updated_at'],
       defaultSortBy: [['id', 'DESC']],
