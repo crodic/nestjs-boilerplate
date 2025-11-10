@@ -1,5 +1,6 @@
 export const IS_PUBLIC = 'isPublic';
 export const IS_AUTH_OPTIONAL = 'isAuthOptional';
+export const SKIP_POLICIES = 'skipPolicies';
 
 export enum Environment {
   LOCAL = 'local',

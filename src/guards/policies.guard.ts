@@ -1,5 +1,5 @@
 import { AdminUserEntity } from '@/api/admin-user/entities/admin-user.entity';
-import { IS_PUBLIC } from '@/constants/app.constant';
+import { IS_PUBLIC, SKIP_POLICIES } from '@/constants/app.constant';
 import {
   CHECK_POLICIES_KEY,
   PolicyHandler,
@@ -22,7 +22,12 @@ export class PoliciesGuard implements CanActivate {
       context.getClass(),
     ]);
 
-    if (isPublic) return true;
+    const isSkipPolices = this.reflector.getAllAndOverride<boolean>(
+      SKIP_POLICIES,
+      [context.getHandler(), context.getClass()],
+    );
+
+    if (isPublic || isSkipPolices) return true;
 
     const handlers =
       this.reflector.get<PolicyHandler[]>(
