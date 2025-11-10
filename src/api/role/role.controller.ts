@@ -11,8 +11,8 @@ import {
   Get,
   Param,
   ParseUUIDPipe,
-  Patch,
   Post,
+  Put,
   Query,
   UseGuards,
 } from '@nestjs/common';
@@ -88,7 +88,7 @@ export class RoleController {
     return this.roleService.findOne(id);
   }
 
-  @Patch(':id')
+  @Put(':id')
   @ApiAuth({ type: RoleResDto, summary: 'Update role' })
   @ApiParam({ name: 'id', type: 'String' })
   @CheckPolicies((ability: AppAbility) =>

@@ -36,6 +36,9 @@ export const ALL_PERMISSIONS = [
   { name: `${AppActions.Update}:${AppSubjects.Role}` },
   { name: `${AppActions.Delete}:${AppSubjects.Role}` },
 
+  // Log
+  { name: `${AppActions.Read}:${AppSubjects.Log}` },
+
   // SUPER
   { name: `${AppActions.Manage}:${AppSubjects.All}` },
 ];

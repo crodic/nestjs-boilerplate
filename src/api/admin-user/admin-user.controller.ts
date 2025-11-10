@@ -13,8 +13,8 @@ import {
   HttpStatus,
   Param,
   ParseUUIDPipe,
-  Patch,
   Post,
+  Put,
   Query,
   UseGuards,
 } from '@nestjs/common';
@@ -27,7 +27,7 @@ import { ChangePasswordResDto } from './dto/change-password.res.dto';
 import { CreateAdminUserReqDto } from './dto/create-admin-user.req.dto';
 import { UpdateAdminUserReqDto } from './dto/update-admin-user.req.dto';
 
-@ApiTags('Admin User')
+@ApiTags('Admin Users')
 @Controller({
   path: 'admin-users',
   version: '1',
@@ -103,7 +103,7 @@ export class AdminUserController {
 
   // --------------------------------------------------
 
-  @Patch(':id')
+  @Put(':id')
   @ApiAuth({ type: AdminUserResDto, summary: 'Update user' })
   @ApiParam({ name: 'id', type: 'String' })
   @CheckPolicies((ability: AppAbility) =>

@@ -7,8 +7,8 @@ import {
   Get,
   Param,
   ParseUUIDPipe,
-  Patch,
   Post,
+  Put,
 } from '@nestjs/common';
 import { ApiParam, ApiTags } from '@nestjs/swagger';
 import { Paginate, Paginated, PaginateQuery } from 'nestjs-paginate';
@@ -58,7 +58,7 @@ export class PostController {
     return this.postService.create(reqDto);
   }
 
-  @Patch(':id')
+  @Put(':id')
   @ApiAuth({
     type: PostResDto,
     summary: 'Update post by id',

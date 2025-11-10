@@ -13,8 +13,8 @@ import {
   HttpStatus,
   Param,
   ParseUUIDPipe,
-  Patch,
   Post,
+  Put,
   Query,
   UseGuards,
 } from '@nestjs/common';
@@ -96,7 +96,7 @@ export class UserController {
     return await this.userService.findOne(id);
   }
 
-  @Patch(':id')
+  @Put(':id')
   @ApiAuth({ type: UserResDto, summary: 'Update user' })
   @ApiParam({ name: 'id', type: 'String' })
   @CheckPolicies((ability: AppAbility) =>
