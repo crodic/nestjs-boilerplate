@@ -39,6 +39,15 @@ export class UserEntity extends AbstractEntity {
   })
   username: string;
 
+  @Column({ length: 100, name: 'first_name', nullable: false })
+  firstName!: string;
+
+  @Column({ length: 100, name: 'last_name', nullable: false })
+  lastName!: string;
+
+  @Column({ length: 201, name: 'full_name' })
+  fullName!: string;
+
   @Column()
   @Index('UQ_user_email', { where: '"deleted_at" IS NULL', unique: true })
   email!: string;
@@ -77,5 +86,11 @@ export class UserEntity extends AbstractEntity {
     if (this.password) {
       this.password = await hashPass(this.password);
     }
+  }
+
+  @BeforeInsert()
+  @BeforeUpdate()
+  updateFullName() {
+    this.fullName = `${this.firstName} ${this.lastName}`;
   }
 }

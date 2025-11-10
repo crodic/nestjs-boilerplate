@@ -20,6 +20,18 @@ export class AdminUserResDto {
 
   @StringField()
   @Expose()
+  firstName: string;
+
+  @StringField()
+  @Expose()
+  lastName: string;
+
+  @StringField()
+  @Expose()
+  fullName: string;
+
+  @StringField()
+  @Expose()
   email: string;
 
   @StringFieldOptional()

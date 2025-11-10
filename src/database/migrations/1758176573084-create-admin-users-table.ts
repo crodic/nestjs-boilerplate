@@ -8,6 +8,9 @@ export class CreateAdminUsersTable1758176573084 implements MigrationInterface {
       CREATE TABLE "admin_users" (
           "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
           "username" character varying(50),
+          "first_name" character varying(100) NOT NULL,
+          "last_name" character varying(100) NOT NULL,
+          "full_name" character varying(201) NOT NULL,
           "email" character varying NOT NULL,
           "password" character varying NOT NULL,
           "bio" character varying NOT NULL DEFAULT '',
