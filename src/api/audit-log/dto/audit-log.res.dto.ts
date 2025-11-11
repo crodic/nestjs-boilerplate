@@ -31,6 +31,10 @@ export class AuditLogResDto {
   @Expose()
   newValue?: object;
 
+  @StringField()
+  @Expose()
+  userId: string;
+
   @ClassField(() => Date)
   @Expose()
   createdAt: Date;
