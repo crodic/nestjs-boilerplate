@@ -5,7 +5,7 @@ import { ErrorCode } from '@/constants/error-code.constant';
 import { ValidationException } from '@/exceptions/validation.exception';
 import { verifyPassword } from '@/utils/password.util';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { ForbiddenException, Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import assert from 'assert';
 import { Cache } from 'cache-manager';
@@ -139,7 +139,11 @@ export class AdminUserService {
 
   async findOne(id: Uuid): Promise<AdminUserResDto> {
     assert(id, 'id is required');
-    const user = await this.adminUserRepository.findOneByOrFail({ id });
+    const user = await this.adminUserRepository.findOneBy({ id });
+
+    if (!user) {
+      throw new ForbiddenException('Forbidden');
+    }
 
     return user.toDto(AdminUserResDto);
   }
