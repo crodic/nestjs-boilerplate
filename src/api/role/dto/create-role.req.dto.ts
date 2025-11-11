@@ -8,7 +8,7 @@ export class CreateRoleReqDto {
   @StringField({ example: 'STAFF' })
   name: string;
 
-  @StringFieldOptional()
+  @StringFieldOptional({ minLength: 0 })
   description?: string;
 
   @PermissionsArrayField({

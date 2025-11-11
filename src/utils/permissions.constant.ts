@@ -1,8 +1,8 @@
 export enum AppSubjects {
-  User = 'User',
-  Role = 'Role',
-  Log = 'Log',
-  Admin = 'Admin',
+  User = 'USER',
+  Role = 'ROLE',
+  Log = 'LOG',
+  Admin = 'ADMIN',
 
   All = 'all',
 }
