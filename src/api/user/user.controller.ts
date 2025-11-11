@@ -68,7 +68,7 @@ export class UserController {
   })
   @Get('me')
   async getCurrentUser(@CurrentUser('id') userId: Uuid): Promise<UserResDto> {
-    return await this.userService.findOne(userId);
+    return await this.userService.me(userId);
   }
 
   @Post()

@@ -3,7 +3,7 @@ import { SYSTEM_USER_ID } from '@/constants/app.constant';
 import { ErrorCode } from '@/constants/error-code.constant';
 import { ValidationException } from '@/exceptions/validation.exception';
 import { verifyPassword } from '@/utils/password.util';
-import { Injectable, Logger } from '@nestjs/common';
+import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import assert from 'assert';
 import { plainToInstance } from 'class-transformer';
@@ -96,6 +96,17 @@ export class UserService {
     this.logger.debug(savedUser);
 
     return plainToInstance(UserResDto, savedUser);
+  }
+
+  async me(id: Uuid): Promise<UserResDto> {
+    assert(id, 'id is required');
+    const user = await this.userRepository.findOneBy({ id });
+
+    if (!user) {
+      throw new ForbiddenException('Forbidden');
+    }
+
+    return user.toDto(UserResDto);
   }
 
   async findOne(id: Uuid): Promise<UserResDto> {

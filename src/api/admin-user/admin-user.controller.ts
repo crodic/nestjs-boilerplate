@@ -67,7 +67,7 @@ export class AdminUserController {
   async getCurrentUser(
     @CurrentUser('id') userId: Uuid,
   ): Promise<AdminUserResDto> {
-    return await this.adminUserService.findOne(userId);
+    return await this.adminUserService.me(userId);
   }
 
   // --------------------------------------------------

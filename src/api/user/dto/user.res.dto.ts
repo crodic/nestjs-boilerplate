@@ -1,11 +1,12 @@
 import { PostResDto } from '@/api/post/dto/post.res.dto';
 import { WrapperType } from '@/common/types/types';
 import {
+  BooleanField,
   ClassField,
   StringField,
   StringFieldOptional,
 } from '@/decorators/field.decorators';
-import { Exclude, Expose } from 'class-transformer';
+import { Exclude, Expose, Transform } from 'class-transformer';
 
 @Exclude()
 export class UserResDto {
@@ -44,6 +45,11 @@ export class UserResDto {
   @ClassField(() => PostResDto)
   @Expose()
   posts?: WrapperType<PostResDto[]>;
+
+  @BooleanField()
+  @Transform(({ value }) => !!value)
+  @Expose()
+  verifiedAt?: boolean;
 
   @ClassField(() => Date)
   @Expose()

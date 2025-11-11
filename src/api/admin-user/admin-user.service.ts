@@ -139,6 +139,13 @@ export class AdminUserService {
 
   async findOne(id: Uuid): Promise<AdminUserResDto> {
     assert(id, 'id is required');
+    const user = await this.adminUserRepository.findOneByOrFail({ id });
+
+    return user.toDto(AdminUserResDto);
+  }
+
+  async me(id: Uuid): Promise<AdminUserResDto> {
+    assert(id, 'id is required');
     const user = await this.adminUserRepository.findOneBy({ id });
 
     if (!user) {
