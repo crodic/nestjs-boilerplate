@@ -18,6 +18,7 @@ import { InjectQueue } from '@nestjs/bullmq';
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 import {
   BadRequestException,
+  ForbiddenException,
   HttpException,
   HttpStatus,
   Inject,
@@ -247,7 +248,7 @@ export class AuthService {
     const session = await SessionEntity.findOneBy({ id: sessionId });
 
     if (!session || session.hash !== hash) {
-      throw new UnauthorizedException();
+      throw new ForbiddenException();
     }
 
     const user = await this.adminUserRepository.findOneOrFail({
