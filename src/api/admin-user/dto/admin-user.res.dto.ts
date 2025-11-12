@@ -31,6 +31,14 @@ export class AdminUserResDto {
   @Expose()
   fullName: string;
 
+  @StringFieldOptional()
+  @Expose()
+  phone: string;
+
+  @StringFieldOptional()
+  @Expose()
+  birthday?: string;
+
   @StringField()
   @Expose()
   email: string;

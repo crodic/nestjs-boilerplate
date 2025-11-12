@@ -59,6 +59,12 @@ export class AdminUserEntity extends AbstractEntity {
   @Column({ default: '' })
   image?: string;
 
+  @Column({ type: 'date', nullable: true })
+  birthday?: Date;
+
+  @Column({ default: '' })
+  phone?: string;
+
   @DeleteDateColumn({
     name: 'deleted_at',
     type: 'timestamptz',
