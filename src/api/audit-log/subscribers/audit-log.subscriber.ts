@@ -1,4 +1,5 @@
 import { SessionEntity } from '@/shared/entities/session.entity';
+import { Logger } from '@nestjs/common';
 import { ClsService } from 'nestjs-cls';
 import {
   DataSource,
@@ -12,6 +13,8 @@ import { AuditLogEntity } from '../entities/audit-log.entity';
 
 @EventSubscriber()
 export class AuditLogSubscriber implements EntitySubscriberInterface {
+  private readonly logger = new Logger(AuditLogSubscriber.name);
+
   constructor(
     private dataSource: DataSource,
     private cls: ClsService<{ userId?: string }>,

@@ -18,6 +18,7 @@ import {
   PaginateQuery,
 } from 'nestjs-paginate';
 import { EntityManager, Repository } from 'typeorm';
+import { RoleEntity } from '../role/entities/role.entity';
 import { AdminUserResDto } from './dto/admin-user.res.dto';
 import { ChangePasswordReqDto } from './dto/change-password.req.dto';
 import { ChangePasswordResDto } from './dto/change-password.res.dto';
@@ -32,6 +33,8 @@ export class AdminUserService {
   constructor(
     @InjectRepository(AdminUserEntity)
     private readonly adminUserRepository: Repository<AdminUserEntity>,
+    @InjectRepository(AdminUserEntity)
+    private readonly roleRepository: Repository<RoleEntity>,
     private cls: ClsService,
     @Inject(CACHE_MANAGER)
     private readonly cacheManager: Cache,
@@ -157,9 +160,18 @@ export class AdminUserService {
 
   async update(id: Uuid, updateUserDto: UpdateAdminUserReqDto) {
     const user = await this.adminUserRepository.findOneByOrFail({ id });
+    const updatedRole = await this.roleRepository.findOneBy({
+      id: updateUserDto.roleId,
+    });
 
     user.bio = updateUserDto.bio;
     user.image = updateUserDto.image;
+    user.email = updateUserDto.email;
+    user.role = updatedRole;
+    user.roleId = updateUserDto.roleId;
+    user.firstName = updateUserDto.firstName;
+    user.lastName = updateUserDto.lastName;
+    user.username = updateUserDto.username;
     user.updatedBy = SYSTEM_USER_ID;
 
     await this.adminUserRepository.save(user);

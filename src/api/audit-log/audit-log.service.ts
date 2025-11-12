@@ -24,7 +24,7 @@ export class AuditLogService {
     const result = await paginate(query, this.auditLogRepository, {
       sortableColumns: ['id', 'createdAt'],
       ignoreSearchByInQueryParam: true,
-      defaultSortBy: [['id', 'DESC']],
+      defaultSortBy: [['createdAt', 'DESC']],
       filterableColumns: {
         createdAt: [FilterOperator.GTE, FilterOperator.LTE],
       },

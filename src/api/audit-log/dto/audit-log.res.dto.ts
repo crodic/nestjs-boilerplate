@@ -25,11 +25,11 @@ export class AuditLogResDto {
 
   @JsonFieldOptional()
   @Expose()
-  oldValue?: object;
+  oldValue?: any;
 
   @JsonFieldOptional()
   @Expose()
-  newValue?: object;
+  newValue?: any;
 
   @StringField()
   @Expose()
