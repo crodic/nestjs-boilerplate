@@ -37,4 +37,10 @@ export class CreateAdminUserReqDto {
 
   @UUIDField()
   roleId!: Uuid;
+
+  @StringFieldOptional()
+  phone?: string;
+
+  @StringFieldOptional()
+  birthday?: string;
 }

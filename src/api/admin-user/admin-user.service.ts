@@ -72,6 +72,8 @@ export class AdminUserService {
       firstName,
       lastName,
       roleId,
+      birthday,
+      phone,
     } = dto;
 
     // check uniqueness of username/email
@@ -99,6 +101,8 @@ export class AdminUserService {
       bio,
       image,
       roleId,
+      birthday: new Date(birthday),
+      phone,
       createdBy: this.cls.get('userId') || SYSTEM_USER_ID,
       updatedBy: this.cls.get('userId') || SYSTEM_USER_ID,
     });

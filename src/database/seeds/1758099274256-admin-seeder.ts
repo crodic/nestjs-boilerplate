@@ -50,6 +50,7 @@ export class AdminSeeder1758099274256 implements Seeder {
         lastName: 'Administrator',
         password: SUPER_ADMIN_ACCOUNT.password,
         role: superAdminRole,
+        verifiedAt: new Date(),
         username: SUPER_ADMIN_ACCOUNT.username,
         createdBy: SYSTEM_USER_ID,
         updatedBy: SYSTEM_USER_ID,
