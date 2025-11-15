@@ -12,7 +12,7 @@ export class CreateAdminUsersTable1758176573084 implements MigrationInterface {
           "last_name" character varying(100) NOT NULL,
           "full_name" character varying(201) NOT NULL,
           "birthday" date,
-          "phone" character varying NOT NULL DEFAULT '',
+          "phone" character varying(20),
           "email" character varying NOT NULL,
           "password" character varying NOT NULL,
           "bio" character varying NOT NULL DEFAULT '',
