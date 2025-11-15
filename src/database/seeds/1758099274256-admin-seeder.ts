@@ -28,6 +28,7 @@ export class AdminSeeder1758099274256 implements Seeder {
     if (!superAdminRole) {
       superAdminRole = roleRepo.create({
         name: SYSTEM_ROLE_NAME,
+        description: 'System role',
         permissions,
         createdBy: SYSTEM_USER_ID,
         updatedBy: SYSTEM_USER_ID,

@@ -62,7 +62,7 @@ export class AdminUserEntity extends AbstractEntity {
   @Column({ type: 'date', nullable: true })
   birthday?: Date;
 
-  @Column({ default: '' })
+  @Column({ nullable: true, length: 20 })
   phone?: string;
 
   @DeleteDateColumn({
