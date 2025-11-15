@@ -203,7 +203,7 @@ export function StringFieldOptional(
 ): PropertyDecorator {
   return applyDecorators(
     IsOptional({ each: options.each }),
-    StringField({ required: false, ...options, minLength: 0 }),
+    StringField({ required: false, minLength: 0,...options }),
   );
 }
 
