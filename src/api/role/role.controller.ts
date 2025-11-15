@@ -1,6 +1,9 @@
 import { Uuid } from '@/common/types/common.type';
 import { ApiAuth, ApiAuthWithPaginate } from '@/decorators/http.decorators';
-import { CheckPolicies } from '@/decorators/policies.decorator';
+import {
+  CheckPolicies,
+  CheckPoliciesLogic,
+} from '@/decorators/policies.decorator';
 import { PoliciesGuard } from '@/guards/policies.guard';
 import { AppAbility } from '@/libs/casl/ability.factory';
 import { AppActions, AppSubjects } from '@/utils/permissions.constant';
@@ -72,8 +75,9 @@ export class RoleController {
   })
   @CheckPolicies(
     (ability: AppAbility) => ability.can(AppActions.Read, AppSubjects.Role),
-    (ability: AppAbility) => ability.can(AppActions.Read, AppSubjects.User),
+    (ability: AppAbility) => ability.can(AppActions.Read, AppSubjects.Admin),
   )
+  @CheckPoliciesLogic('OR')
   roleFormOptions() {
     return this.roleService.formOptions();
   }

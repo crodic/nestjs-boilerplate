@@ -2,7 +2,9 @@ import { AdminUserEntity } from '@/api/admin-user/entities/admin-user.entity';
 import { IS_PUBLIC, SKIP_POLICIES } from '@/constants/app.constant';
 import {
   CHECK_POLICIES_KEY,
+  CHECK_POLICIES_LOGIC_KEY,
   PolicyHandler,
+  PolicyLogic,
 } from '@/decorators/policies.decorator';
 import { CaslAbilityFactory } from '@/libs/casl/ability.factory';
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
@@ -35,12 +37,22 @@ export class PoliciesGuard implements CanActivate {
         context.getHandler(),
       ) || [];
 
+    const logic =
+      this.reflector.get<PolicyLogic>(
+        CHECK_POLICIES_LOGIC_KEY,
+        context.getHandler(),
+      ) || 'AND';
+
     const request = context
       .switchToHttp()
       .getRequest<Request & { user: AdminUserEntity }>();
     const user = request.user;
 
     const ability = this.caslFactory.createForUser(user);
+
+    if (logic === 'OR') {
+      return handlers.some((handler) => handler(ability));
+    }
 
     return handlers.every((handler) => handler(ability));
   }
