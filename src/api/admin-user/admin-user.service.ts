@@ -33,7 +33,7 @@ export class AdminUserService {
   constructor(
     @InjectRepository(AdminUserEntity)
     private readonly adminUserRepository: Repository<AdminUserEntity>,
-    @InjectRepository(AdminUserEntity)
+    @InjectRepository(RoleEntity)
     private readonly roleRepository: Repository<RoleEntity>,
     private cls: ClsService,
     @Inject(CACHE_MANAGER)
@@ -172,7 +172,6 @@ export class AdminUserService {
     user.image = updateUserDto.image;
     user.email = updateUserDto.email;
     user.role = updatedRole;
-    user.roleId = updateUserDto.roleId;
     user.firstName = updateUserDto.firstName;
     user.lastName = updateUserDto.lastName;
     user.username = updateUserDto.username;
