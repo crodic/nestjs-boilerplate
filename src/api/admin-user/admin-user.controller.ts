@@ -103,6 +103,8 @@ export class AdminUserController {
   })
   @UseInterceptors(FileInterceptor('image', avatarUploadOption))
   async updateCurrentUser(
+    @CurrentUser('id') userId: Uuid,
+    @Body() reqDto: UpdateMeReqDto,
     @UploadedFile(
       new ParseFilePipe({
         validators: [
@@ -110,11 +112,10 @@ export class AdminUserController {
           new FileTypeValidator({ fileType: /(jpeg|png|jpg)$/ }),
         ],
         fileIsRequired: false,
+        errorHttpStatusCode: HttpStatus.BAD_REQUEST,
       }),
     )
-    image: Express.Multer.File,
-    @CurrentUser('id') userId: Uuid,
-    @Body() reqDto: UpdateMeReqDto,
+    image?: Express.Multer.File,
   ): Promise<{ message: string }> {
     return await this.adminUserService.updateMe(userId, reqDto, image);
   }
