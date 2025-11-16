@@ -3,6 +3,7 @@ import { SYSTEM_USER_ID } from '@/constants/app.constant';
 import { CacheKey } from '@/constants/cache.constant';
 import { ErrorCode } from '@/constants/error-code.constant';
 import { ValidationException } from '@/exceptions/validation.exception';
+import { deleteFile } from '@/utils/file';
 import { verifyPassword } from '@/utils/password.util';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import {
@@ -180,7 +181,10 @@ export class AdminUserService {
 
     delete user.password;
 
-    if (dto.removeAvatar) user.image = '';
+    if (dto.removeAvatar || file) {
+      await deleteFile(user.image);
+      user.image = '';
+    }
 
     Object.assign(user, {
       ...dto,
