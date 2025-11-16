@@ -7,6 +7,7 @@ import {
   StringField,
   StringFieldOptional,
 } from '@/decorators/field.decorators';
+import { ToFullUrl } from '@/decorators/transform.decorators';
 import { Exclude, Expose, Transform } from 'class-transformer';
 
 @Exclude()
@@ -48,6 +49,7 @@ export class AdminUserResDto {
   bio?: string;
 
   @StringField()
+  @ToFullUrl()
   @Expose()
   image: string;
 

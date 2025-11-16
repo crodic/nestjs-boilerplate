@@ -87,16 +87,9 @@ export class AuthService {
   ): Promise<AdminUserLoginResDto> {
     const { email, password } = dto;
     console.log({ email });
-    console.log(await this.adminUserRepository.count());
     const user = await this.adminUserRepository.findOne({
       where: { email },
     });
-
-    const all = await this.adminUserRepository.find({
-      select: ['id', 'email'],
-    });
-    console.log(all);
-
     console.log(user);
 
     const isPasswordValid =

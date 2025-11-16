@@ -5,7 +5,13 @@ import { ErrorCode } from '@/constants/error-code.constant';
 import { ValidationException } from '@/exceptions/validation.exception';
 import { verifyPassword } from '@/utils/password.util';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { ForbiddenException, Inject, Injectable, Logger } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Inject,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import assert from 'assert';
 import { Cache } from 'cache-manager';
@@ -19,11 +25,13 @@ import {
 } from 'nestjs-paginate';
 import { EntityManager, Repository } from 'typeorm';
 import { RoleEntity } from '../role/entities/role.entity';
+import { AVATAR_PATH } from './configs/multer.config';
 import { AdminUserResDto } from './dto/admin-user.res.dto';
 import { ChangePasswordReqDto } from './dto/change-password.req.dto';
 import { ChangePasswordResDto } from './dto/change-password.res.dto';
 import { CreateAdminUserReqDto } from './dto/create-admin-user.req.dto';
 import { UpdateAdminUserReqDto } from './dto/update-admin-user.req.dto';
+import { UpdateMeReqDto } from './dto/update-me.req.dto';
 import { AdminUserEntity } from './entities/admin-user.entity';
 
 @Injectable()
@@ -68,7 +76,6 @@ export class AdminUserService {
       email,
       password,
       bio,
-      image,
       firstName,
       lastName,
       roleId,
@@ -99,7 +106,6 @@ export class AdminUserService {
       email,
       password,
       bio,
-      image,
       roleId,
       birthday: new Date(birthday),
       phone,
@@ -162,6 +168,36 @@ export class AdminUserService {
     return user.toDto(AdminUserResDto);
   }
 
+  async updateMe(
+    id: Uuid,
+    dto: UpdateMeReqDto,
+    file: Express.Multer.File,
+  ): Promise<{ message: string }> {
+    const user = await this.adminUserRepository.findOneBy({ id });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (dto.firstName !== undefined) user.firstName = dto.firstName;
+    if (dto.lastName !== undefined) user.lastName = dto.lastName;
+    if (dto.bio !== undefined) user.bio = dto.bio;
+    if (dto.phone !== undefined) user.phone = dto.phone;
+    if (dto.birthday !== undefined) user.birthday = new Date(dto.birthday);
+
+    Object.assign(user, {
+      ...dto,
+      updatedBy: id,
+      ...(file && { image: AVATAR_PATH + '/' + file.filename }),
+    });
+
+    await this.adminUserRepository.save(user);
+
+    return {
+      message: 'success',
+    };
+  }
+
   async update(id: Uuid, updateUserDto: UpdateAdminUserReqDto) {
     const user = await this.adminUserRepository.findOneByOrFail({ id });
     const updatedRole = await this.roleRepository.findOneBy({
@@ -169,7 +205,6 @@ export class AdminUserService {
     });
 
     user.bio = updateUserDto.bio;
-    user.image = updateUserDto.image;
     user.email = updateUserDto.email;
     user.role = updatedRole;
     user.firstName = updateUserDto.firstName;

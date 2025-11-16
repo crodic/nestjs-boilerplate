@@ -9,23 +9,31 @@ import {
   Body,
   Controller,
   Delete,
+  FileTypeValidator,
   Get,
   HttpStatus,
+  MaxFileSizeValidator,
   Param,
+  ParseFilePipe,
   ParseUUIDPipe,
   Post,
   Put,
   Query,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
-import { ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiConsumes, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { Paginate, Paginated, PaginateQuery } from 'nestjs-paginate';
 import { AdminUserService } from './admin-user.service';
+import { avatarUploadOption } from './configs/multer.config';
 import { AdminUserResDto } from './dto/admin-user.res.dto';
 import { ChangePasswordReqDto } from './dto/change-password.req.dto';
 import { ChangePasswordResDto } from './dto/change-password.res.dto';
 import { CreateAdminUserReqDto } from './dto/create-admin-user.req.dto';
 import { UpdateAdminUserReqDto } from './dto/update-admin-user.req.dto';
+import { UpdateMeReqDto } from './dto/update-me.req.dto';
 
 @ApiTags('Admin Users')
 @Controller({
@@ -85,6 +93,30 @@ export class AdminUserController {
     @Body() createAdminUserDto: CreateAdminUserReqDto,
   ): Promise<AdminUserResDto> {
     return await this.adminUserService.create(createAdminUserDto);
+  }
+
+  @Put('me')
+  @ApiConsumes('multipart/form-data')
+  @ApiAuth({
+    type: AdminUserResDto,
+    summary: 'Update current user',
+  })
+  @UseInterceptors(FileInterceptor('image', avatarUploadOption))
+  async updateCurrentUser(
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 5 * 1024 * 1024 }),
+          new FileTypeValidator({ fileType: /(jpeg|png|jpg)$/ }),
+        ],
+        fileIsRequired: false,
+      }),
+    )
+    image: Express.Multer.File,
+    @CurrentUser('id') userId: Uuid,
+    @Body() reqDto: UpdateMeReqDto,
+  ): Promise<{ message: string }> {
+    return await this.adminUserService.updateMe(userId, reqDto, image);
   }
 
   // --------------------------------------------------

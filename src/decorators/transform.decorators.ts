@@ -86,3 +86,21 @@ export function ToUpperCase(): PropertyDecorator {
     },
   );
 }
+
+export function ToFullUrl() {
+  return Transform(({ value }) => {
+    if (!value) return null;
+    if (typeof value !== 'string') return value;
+
+    if (value.startsWith('http')) return value;
+
+    const baseUrl = process.env.APP_URL || '';
+
+    const normalizedBase = baseUrl.endsWith('/')
+      ? baseUrl.slice(0, -1)
+      : baseUrl;
+    const normalizedPath = value.startsWith('/') ? value : `/${value}`;
+
+    return `${normalizedBase}${normalizedPath}`;
+  });
+}

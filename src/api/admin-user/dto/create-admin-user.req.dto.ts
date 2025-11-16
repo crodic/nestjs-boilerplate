@@ -32,9 +32,6 @@ export class CreateAdminUserReqDto {
   @StringFieldOptional()
   bio?: string;
 
-  @StringFieldOptional()
-  image?: string;
-
   @UUIDField()
   roleId!: Uuid;
 
