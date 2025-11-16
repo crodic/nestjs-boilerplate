@@ -180,11 +180,6 @@ export class AdminUserService {
 
     delete user.password;
 
-    if (dto.firstName !== undefined) user.firstName = dto.firstName;
-    if (dto.lastName !== undefined) user.lastName = dto.lastName;
-    if (dto.bio !== undefined) user.bio = dto.bio;
-    if (dto.phone !== undefined) user.phone = dto.phone;
-    if (dto.birthday !== undefined) user.birthday = new Date(dto.birthday);
     if (dto.removeAvatar) user.image = '';
 
     Object.assign(user, {
