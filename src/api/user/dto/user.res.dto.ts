@@ -22,9 +22,9 @@ export class UserResDto {
   @Expose()
   firstName: string;
 
-  @StringField()
+  @StringFieldOptional()
   @Expose()
-  lastName: string;
+  lastName?: string;
 
   @StringField()
   @Expose()
@@ -38,9 +38,9 @@ export class UserResDto {
   @Expose()
   bio?: string;
 
-  @StringField()
+  @StringFieldOptional()
   @Expose()
-  image: string;
+  image?: string;
 
   @ClassField(() => PostResDto)
   @Expose()
