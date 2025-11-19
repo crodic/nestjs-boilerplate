@@ -1,6 +1,5 @@
 import { PostEntity } from '@/api/post/entities/post.entity';
 import { Uuid } from '@/common/types/common.type';
-import { EUserLoginProvider } from '@/constants/entity.enum';
 import { AbstractEntity } from '@/database/entities/abstract.entity';
 import { hashPassword as hashPass } from '@/utils/password.util';
 import {
@@ -16,10 +15,6 @@ import {
 } from 'typeorm';
 
 @Entity('users')
-@Index('UQ_user_provider', ['provider', 'providerId'], {
-  where: '"provider_id" IS NOT NULL AND "deleted_at" IS NULL',
-  unique: true,
-})
 export class UserEntity extends AbstractEntity {
   constructor(data?: Partial<UserEntity>) {
     super();
@@ -42,8 +37,8 @@ export class UserEntity extends AbstractEntity {
   @Column({ length: 100, name: 'first_name', nullable: false })
   firstName!: string;
 
-  @Column({ length: 100, name: 'last_name', nullable: false })
-  lastName!: string;
+  @Column({ length: 100, name: 'last_name', nullable: true })
+  lastName?: string;
 
   @Column({ length: 201, name: 'full_name' })
   fullName!: string;
@@ -55,16 +50,10 @@ export class UserEntity extends AbstractEntity {
   @Column({ nullable: true })
   password?: string;
 
-  @Column({ default: EUserLoginProvider.LOCAL })
-  provider!: string;
-
-  @Column({ name: 'provider_id', nullable: true })
-  providerId?: string;
-
-  @Column({ default: '' })
+  @Column({ nullable: true })
   bio?: string;
 
-  @Column({ default: '' })
+  @Column({ nullable: true })
   image?: string;
 
   @DeleteDateColumn({
@@ -90,7 +79,7 @@ export class UserEntity extends AbstractEntity {
 
   @BeforeInsert()
   @BeforeUpdate()
-  updateFullName() {
-    this.fullName = `${this.firstName} ${this.lastName}`;
+  generateFullName() {
+    this.fullName = `${this.firstName}${this.lastName ? ` ${this.lastName}` : ''}`;
   }
 }

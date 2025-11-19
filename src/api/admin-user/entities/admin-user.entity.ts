@@ -40,8 +40,8 @@ export class AdminUserEntity extends AbstractEntity {
   @Column({ length: 100, name: 'first_name', nullable: false })
   firstName!: string;
 
-  @Column({ length: 100, name: 'last_name', nullable: false })
-  lastName!: string;
+  @Column({ length: 100, name: 'last_name', nullable: true })
+  lastName?: string;
 
   @Column({ length: 201, name: 'full_name' })
   fullName!: string;
@@ -53,10 +53,10 @@ export class AdminUserEntity extends AbstractEntity {
   @Column()
   password: string;
 
-  @Column({ default: '' })
+  @Column({ nullable: true })
   bio?: string;
 
-  @Column({ default: '' })
+  @Column({ nullable: true })
   image?: string;
 
   @Column({ type: 'date', nullable: true })
@@ -99,7 +99,7 @@ export class AdminUserEntity extends AbstractEntity {
 
   @BeforeInsert()
   @BeforeUpdate()
-  updateFullName() {
-    this.fullName = `${this.firstName} ${this.lastName}`;
+  generateFullName() {
+    this.fullName = `${this.firstName}${this.lastName ? ` ${this.lastName}` : ''}`;
   }
 }

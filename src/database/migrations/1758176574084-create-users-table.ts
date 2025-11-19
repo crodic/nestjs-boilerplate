@@ -9,14 +9,12 @@ export class CreateUsersTable1758176574084 implements MigrationInterface {
           "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
           "username" character varying(50),
           "first_name" character varying(100) NOT NULL,
-          "last_name" character varying(100) NOT NULL,
+          "last_name" character varying(100),
           "full_name" character varying(201) NOT NULL,
           "email" character varying NOT NULL,
           "password" character varying,
-          "provider" character varying NOT NULL DEFAULT 'local',
-          "provider_id" character varying,
-          "bio" character varying NOT NULL DEFAULT '',
-          "image" character varying NOT NULL DEFAULT '',
+          "bio" character varying,
+          "image" character varying,
           "verified_at" TIMESTAMP WITH TIME ZONE,
           "deleted_at" TIMESTAMP WITH TIME ZONE,
           "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
@@ -36,15 +34,9 @@ export class CreateUsersTable1758176574084 implements MigrationInterface {
       CREATE UNIQUE INDEX "UQ_user_email" ON "users" ("email")
       WHERE "deleted_at" IS NULL
     `);
-
-    await queryRunner.query(`
-      CREATE UNIQUE INDEX "UQ_user_provider" ON "users" ("provider", "provider_id")
-      WHERE "provider_id" IS NOT NULL AND "deleted_at" IS NULL
-    `);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`DROP INDEX "public"."UQ_user_provider"`);
     await queryRunner.query(`DROP INDEX "public"."UQ_user_email"`);
     await queryRunner.query(`DROP INDEX "public"."UQ_user_username"`);
     await queryRunner.query(`DROP TABLE "users"`);
