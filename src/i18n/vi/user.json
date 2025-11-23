@@ -4,7 +4,8 @@
     "email": "Người dùng đã tồn tại"
   },
   "validation": {
-    "is_empty": "Trường này không được để trống"
+    "is_empty": "Trường này không được để trống",
+    "password_not_match": "Mật khẩu không trùng khớp"
   },
   "error": {
     "username_or_email_exists": "Tên người dùng hoặc email đã tồn tại",

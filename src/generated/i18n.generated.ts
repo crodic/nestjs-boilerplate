@@ -21,6 +21,7 @@ export type I18nTranslations = {
         };
         "validation": {
             "is_empty": string;
+            "password_not_match": string;
         };
         "error": {
             "username_or_email_exists": string;

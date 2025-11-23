@@ -100,6 +100,16 @@ export class AdminUserService {
       throw new ValidationException(ErrorCode.E001);
     }
 
+    const role = await this.roleRepository.findOne({
+      where: {
+        id: roleId,
+      },
+    });
+
+    if (!role) {
+      throw new ValidationException(ErrorCode.E002);
+    }
+
     const newUser = new AdminUserEntity({
       username,
       firstName,
@@ -107,7 +117,7 @@ export class AdminUserService {
       email,
       password,
       bio,
-      roleId,
+      role,
       birthday: new Date(birthday),
       phone,
       createdBy: this.cls.get('userId') || SYSTEM_USER_ID,
@@ -183,7 +193,7 @@ export class AdminUserService {
 
     if (dto.removeAvatar || file) {
       await deleteFile(user.image);
-      user.image = '';
+      user.image = null;
     }
 
     Object.assign(user, {
@@ -228,11 +238,13 @@ export class AdminUserService {
     const user = await this.adminUserRepository.findOneByOrFail({ id });
     const isPasswordValid = await verifyPassword(dto.password, user.password);
     if (!isPasswordValid) {
-      throw new ValidationException(ErrorCode.E002);
+      throw new ValidationException(ErrorCode.V003);
     }
+
     if (dto.newPassword !== dto.confirmNewPassword) {
-      throw new ValidationException(ErrorCode.E003);
+      throw new ValidationException(ErrorCode.V003);
     }
+
     user.password = dto.newPassword;
     user.updatedBy = id;
 
