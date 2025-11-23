@@ -1,5 +1,6 @@
 import { Uuid } from '@/common/types/common.type';
 import {
+  DateFieldOptional,
   EmailField,
   PasswordField,
   StringField,
@@ -11,7 +12,7 @@ import { lowerCaseTransformer } from '@/utils/transformers/lower-case.transforme
 import { Transform } from 'class-transformer';
 
 export class CreateAdminUserReqDto {
-  @StringField()
+  @StringFieldOptional()
   @Transform(lowerCaseTransformer)
   username: string;
 
@@ -38,6 +39,7 @@ export class CreateAdminUserReqDto {
   @StringFieldOptional()
   phone?: string;
 
-  @StringFieldOptional()
-  birthday?: string;
+  @DateFieldOptional()
+  @Transform(({ value }) => (value ? new Date(value) : null))
+  birthday?: Date;
 }

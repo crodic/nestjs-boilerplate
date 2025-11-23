@@ -118,7 +118,7 @@ export class AdminUserService {
       password,
       bio,
       role,
-      birthday: new Date(birthday),
+      birthday: birthday ? new Date(birthday) : null,
       phone,
       createdBy: this.cls.get('userId') || SYSTEM_USER_ID,
       updatedBy: this.cls.get('userId') || SYSTEM_USER_ID,
@@ -215,13 +215,12 @@ export class AdminUserService {
       id: updateUserDto.roleId,
     });
 
-    user.bio = updateUserDto.bio;
-    user.email = updateUserDto.email;
+    Object.assign(user, updateUserDto);
+
+    delete user.password;
     user.role = updatedRole;
-    user.firstName = updateUserDto.firstName;
-    user.lastName = updateUserDto.lastName;
-    user.username = updateUserDto.username;
-    user.updatedBy = SYSTEM_USER_ID;
+
+    user.updatedBy = this.cls.get('userId') || SYSTEM_USER_ID;
 
     await this.adminUserRepository.save(user);
   }
