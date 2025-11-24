@@ -1,26 +1,60 @@
+import { Uuid } from '@/common/types/common.type';
 import { Injectable } from '@nestjs/common';
-import { CreateNotificationDto } from './dto/create-notification.dto';
-import { UpdateNotificationDto } from './dto/update-notification.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { NotificationRecipientEntity } from './entities/notification-recipient.entity';
+import { NotificationEntity } from './entities/notification.entity';
+import { NotificationGateway } from './notification.gateway';
 
 @Injectable()
 export class NotificationService {
-  create(createNotificationDto: CreateNotificationDto) {
-    return 'This action adds a new notification';
+  constructor(
+    @InjectRepository(NotificationEntity)
+    private notificationRepo: Repository<NotificationEntity>,
+    @InjectRepository(NotificationRecipientEntity)
+    private recipientRepo: Repository<NotificationRecipientEntity>,
+    private gateway: NotificationGateway,
+  ) {}
+
+  async createNotification(
+    actorId: string,
+    recipientIds: string[],
+    data: Partial<NotificationEntity>,
+  ) {
+    const notification = this.notificationRepo.create({
+      actorId,
+      title: data.title,
+      message: data.message,
+      type: data.type || 'system',
+      metadata: data.metadata || null,
+    });
+
+    notification.recipients = recipientIds.map((userId) =>
+      this.recipientRepo.create({ userId }),
+    );
+
+    await this.notificationRepo.save(notification);
+
+    // Gửi real-time qua Socket.IO tới từng user
+    for (const userId of recipientIds) {
+      this.gateway.sendToUser(userId, notification);
+    }
+
+    return notification;
   }
 
-  findAll() {
-    return `This action returns all notification`;
+  async markAsRead(notificationId: Uuid, userId: Uuid) {
+    return this.recipientRepo.update(
+      { notificationId, userId },
+      { isRead: true },
+    );
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} notification`;
-  }
-
-  update(id: number, updateNotificationDto: UpdateNotificationDto) {
-    return `This action updates a #${id} notification`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} notification`;
+  async getUserNotifications(userId: Uuid) {
+    return this.recipientRepo.find({
+      where: { userId },
+      relations: ['notification'],
+      order: { createdAt: 'DESC' },
+    });
   }
 }
