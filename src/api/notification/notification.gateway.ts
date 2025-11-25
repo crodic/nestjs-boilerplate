@@ -1,12 +1,19 @@
-import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
+import {
+  SubscribeMessage,
+  WebSocketGateway,
+  WebSocketServer,
+} from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { NotificationService } from './notification.service';
 
-@WebSocketGateway()
+@WebSocketGateway({
+  cors: { origin: '*' },
+})
 export class NotificationGateway {
-  private onlineUsers = new Set<string>();
-
   @WebSocketServer() server: Server;
+
+  private onlineUsers = new Map<string, number>();
+
   constructor(private readonly notificationService: NotificationService) {}
 
   sendToUser(userId: string, notification: any) {
@@ -15,20 +22,34 @@ export class NotificationGateway {
 
   handleConnection(client: Socket) {
     const userId = client.handshake.query.userId as string;
-    if (userId) {
-      client.join(`user_${userId}`);
-      this.onlineUsers.add(userId);
-      this.sendOnlineCount();
-      console.log(`User ${userId} connected`);
-    }
+
+    if (!userId) return;
+
+    client.join(`user_${userId}`);
+
+    const count = this.onlineUsers.get(userId) || 0;
+    this.onlineUsers.set(userId, count + 1);
+
+    this.sendOnlineCount();
+
+    console.log(`User ${userId} connected.`);
   }
 
   handleDisconnect(client: Socket) {
     const userId = client.handshake.query.userId as string;
-    if (userId) {
+
+    if (!userId) return;
+
+    const count = this.onlineUsers.get(userId) || 0;
+    if (count <= 1) {
       this.onlineUsers.delete(userId);
-      console.log(`User ${userId} disconnected`);
+    } else {
+      this.onlineUsers.set(userId, count - 1);
     }
+
+    this.sendOnlineCount();
+
+    console.log(`User ${userId} disconnected.`);
   }
 
   getOnlineCount() {
@@ -37,5 +58,15 @@ export class NotificationGateway {
 
   sendOnlineCount() {
     this.server.emit('onlineCount', this.getOnlineCount());
+  }
+
+  @SubscribeMessage('markRead')
+  async handleMarkRead(client: Socket, payload: any) {
+    await this.notificationService.markAsRead(
+      payload.notificationId,
+      payload.userId,
+    );
+
+    client.emit('markReadSuccess', payload.notificationId);
   }
 }
