@@ -27,6 +27,7 @@ export class NotificationGateway {
     const userId = client.handshake.query.userId as string;
     if (userId) {
       this.onlineUsers.delete(userId);
+      client.leave(`user_${userId}`);
       console.log(`User ${userId} disconnected`);
     }
   }
