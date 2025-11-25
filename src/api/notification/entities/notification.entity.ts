@@ -15,7 +15,7 @@ export class NotificationEntity {
   })
   id!: Uuid;
 
-  @Column({ type: 'uuid', nullable: true })
+  @Column({ nullable: true, name: 'actor_id' })
   actorId?: Uuid;
 
   @Column({ type: 'varchar', length: 255 })
@@ -30,7 +30,12 @@ export class NotificationEntity {
   @Column({ type: 'varchar', length: 50, default: 'system' })
   type: string;
 
-  @CreateDateColumn()
+  @CreateDateColumn({
+    name: 'created_at',
+    type: 'timestamptz',
+    default: () => 'CURRENT_TIMESTAMP',
+    nullable: false,
+  })
   createdAt: Date;
 
   @OneToMany(
