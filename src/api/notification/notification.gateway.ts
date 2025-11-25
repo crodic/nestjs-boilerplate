@@ -1,10 +1,5 @@
-import {
-  SubscribeMessage,
-  WebSocketGateway,
-  WebSocketServer,
-} from '@nestjs/websockets';
+import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { NotificationService } from './notification.service';
 
 @WebSocketGateway({
   cors: { origin: '*' },
@@ -13,8 +8,6 @@ export class NotificationGateway {
   @WebSocketServer() server: Server;
 
   private onlineUsers = new Map<string, number>();
-
-  constructor(private readonly notificationService: NotificationService) {}
 
   sendToUser(userId: string, notification: any) {
     this.server.to(`user_${userId}`).emit('notification', notification);
@@ -58,15 +51,5 @@ export class NotificationGateway {
 
   sendOnlineCount() {
     this.server.emit('onlineCount', this.getOnlineCount());
-  }
-
-  @SubscribeMessage('markRead')
-  async handleMarkRead(client: Socket, payload: any) {
-    await this.notificationService.markAsRead(
-      payload.notificationId,
-      payload.userId,
-    );
-
-    client.emit('markReadSuccess', payload.notificationId);
   }
 }

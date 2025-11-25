@@ -24,10 +24,10 @@ export class NotificationRecipientEntity {
   )
   notification: NotificationEntity;
 
-  @Column({ name: 'notification_id' })
+  @Column({ name: 'notification_id', type: 'uuid' })
   notificationId: Uuid;
 
-  @Column({ name: 'user_id' })
+  @Column({ name: 'user_id', type: 'uuid' })
   userId: Uuid;
 
   @Column({ default: false })

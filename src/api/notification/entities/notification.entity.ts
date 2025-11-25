@@ -15,7 +15,7 @@ export class NotificationEntity {
   })
   id!: Uuid;
 
-  @Column({ nullable: true, name: 'actor_id' })
+  @Column({ nullable: true, name: 'actor_id', type: 'uuid' })
   actorId?: Uuid;
 
   @Column({ type: 'varchar', length: 255 })
