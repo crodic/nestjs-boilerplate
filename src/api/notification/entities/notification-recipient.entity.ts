@@ -24,15 +24,20 @@ export class NotificationRecipientEntity {
   )
   notification: NotificationEntity;
 
-  @Column({ type: 'uuid' })
+  @Column({ name: 'notification_id' })
   notificationId: Uuid;
 
-  @Column({ type: 'uuid' })
+  @Column({ name: 'user_id' })
   userId: Uuid;
 
   @Column({ default: false })
   isRead: boolean;
 
-  @CreateDateColumn()
+  @CreateDateColumn({
+    name: 'created_at',
+    type: 'timestamptz',
+    default: () => 'CURRENT_TIMESTAMP',
+    nullable: false,
+  })
   createdAt: Date;
 }
