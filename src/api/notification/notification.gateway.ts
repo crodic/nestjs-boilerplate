@@ -43,13 +43,8 @@ export class NotificationGateway {
     const count = this.onlineUsers.get(userId) || 0;
     if (count <= 1) {
       this.onlineUsers.delete(userId);
-<<<<<<< HEAD
     } else {
       this.onlineUsers.set(userId, count - 1);
-=======
-      client.leave(`user_${userId}`);
-      console.log(`User ${userId} disconnected`);
->>>>>>> 45560f4b43bf5ff19a1eb17bdccec733dba82be9
     }
 
     this.sendOnlineCount();
