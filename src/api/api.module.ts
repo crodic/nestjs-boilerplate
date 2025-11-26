@@ -8,10 +8,11 @@ import { AuthModule } from './auth/auth.module';
 import { FileUploadModule } from './file-upload/file-upload.module';
 import { HealthModule } from './health/health.module';
 import { HomeModule } from './home/home.module';
+import { NotificationModule } from './notification/notification.module';
+import { PageModule } from './page/page.module';
 import { PostModule } from './post/post.module';
 import { RoleModule } from './role/role.module';
 import { UserModule } from './user/user.module';
-import { NotificationModule } from './notification/notification.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { NotificationModule } from './notification/notification.module';
     AdminUserModule,
     FileUploadModule,
     NotificationModule,
+    PageModule,
   ],
 })
 export class ApiModule {}

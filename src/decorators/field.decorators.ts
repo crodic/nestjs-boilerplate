@@ -203,7 +203,7 @@ export function StringFieldOptional(
 ): PropertyDecorator {
   return applyDecorators(
     IsOptional({ each: options.each }),
-    StringField({ required: false, minLength: 0,...options }),
+    StringField({ required: false, minLength: 0, ...options }),
   );
 }
 
@@ -555,7 +555,11 @@ export function ArrayField(
   options: Omit<ApiPropertyOptions, 'type' | 'isArray'> &
     IArrayFieldOptions = {},
 ): PropertyDecorator {
-  const decorators = [IsArray(), Type(() => itemType)];
+  const decorators = [
+    IsArray(),
+    Type(() => itemType),
+    ValidateNested({ each: true }),
+  ];
 
   if (options.notEmpty) {
     decorators.push(ArrayNotEmpty());

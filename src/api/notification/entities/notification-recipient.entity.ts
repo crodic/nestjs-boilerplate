@@ -3,8 +3,10 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
+  Relation,
 } from 'typeorm';
 import { NotificationEntity } from './notification.entity';
 
@@ -15,6 +17,11 @@ export class NotificationRecipientEntity {
   })
   id!: Uuid;
 
+  @JoinColumn({
+    name: 'notification_id',
+    referencedColumnName: 'id',
+    foreignKeyConstraintName: 'FK_recipient_notification_id',
+  })
   @ManyToOne(
     () => NotificationEntity,
     (notification) => notification.recipients,
@@ -22,7 +29,7 @@ export class NotificationRecipientEntity {
       onDelete: 'CASCADE',
     },
   )
-  notification: NotificationEntity;
+  notification: Relation<NotificationEntity>;
 
   @Column({ name: 'notification_id', type: 'uuid' })
   notificationId: Uuid;

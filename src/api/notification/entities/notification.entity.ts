@@ -5,6 +5,7 @@ import {
   Entity,
   OneToMany,
   PrimaryGeneratedColumn,
+  Relation,
 } from 'typeorm';
 import { NotificationRecipientEntity } from './notification-recipient.entity';
 
@@ -43,5 +44,5 @@ export class NotificationEntity {
     (recipient) => recipient.notification,
     { cascade: true },
   )
-  recipients: NotificationRecipientEntity[];
+  recipients: Relation<NotificationRecipientEntity[]>;
 }
