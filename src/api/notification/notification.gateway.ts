@@ -23,6 +23,12 @@ export class NotificationGateway {
     const count = this.onlineUsers.get(userId) || 0;
     this.onlineUsers.set(userId, count + 1);
 
+    this.onlineUsers.forEach((value, key) => {
+      console.log('key:', key, 'value:', value);
+    });
+
+    console.log('Size: ', this.onlineUsers.size);
+
     this.sendOnlineCount();
 
     console.log(`User ${userId} connected.`);
