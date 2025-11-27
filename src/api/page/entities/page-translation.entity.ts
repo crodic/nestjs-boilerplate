@@ -3,6 +3,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
@@ -11,6 +12,7 @@ import {
 } from 'typeorm';
 import { PageEntity } from './page.entity';
 
+@Index('IDX_page_code', ['pageId', 'code'], { unique: true })
 @Entity('page-translations')
 export class PageTranslationEntity {
   @PrimaryGeneratedColumn('uuid', {

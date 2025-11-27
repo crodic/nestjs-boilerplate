@@ -42,10 +42,16 @@ export class CreatePagesTable1764038438491 implements MigrationInterface {
       CREATE UNIQUE INDEX "UQ_page_slug" ON "pages" ("slug")
       WHERE "deleted_at" IS NULL
     `);
+    await queryRunner.query(`
+            CREATE UNIQUE INDEX "IDX_page_code" ON "page-translations" ("page_id", "code")
+        `);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`DROP INDEX "public"."UQ_page_slug"`);
+    await queryRunner.query(`
+            DROP INDEX "public"."IDX_page_code"
+        `);
     await queryRunner.query(`
             ALTER TABLE "page-translations" DROP CONSTRAINT "FK_page_page_translation_id"
         `);
