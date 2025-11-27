@@ -13,6 +13,18 @@ export class NotificationGateway {
     this.server.to(`user_${userId}`).emit('notification', notification);
   }
 
+  sendGlobal(payload: any) {
+    this.server.emit('notification', payload);
+  }
+
+  sendToRoom(roomName: string, payload: any) {
+    this.server.to(roomName).emit('notification', payload);
+  }
+
+  sendToAllExceptUser(userId: string, payload: any) {
+    this.server.except(`user_${userId}`).emit('notification', payload);
+  }
+
   handleConnection(client: Socket) {
     const userId = client.handshake.query.userId as string;
 

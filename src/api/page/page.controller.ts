@@ -1,3 +1,4 @@
+import { ApiAuth } from '@/decorators/http.decorators';
 import {
   Body,
   Controller,
@@ -19,6 +20,7 @@ export class PageController {
   constructor(private readonly pageService: PageService) {}
 
   @Post()
+  @ApiAuth({})
   create(@Body() dto: CreatePageDto) {
     return this.pageService.create(dto);
   }

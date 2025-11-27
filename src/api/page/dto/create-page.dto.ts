@@ -1,7 +1,9 @@
 import { EPageStatusType } from '@/constants/entity.enum';
-import { EnumField, StringFieldOptional } from '@/decorators/field.decorators';
-import { Type } from 'class-transformer';
-import { IsNotEmpty, ValidateNested } from 'class-validator';
+import {
+  ClassField,
+  EnumField,
+  StringFieldOptional,
+} from '@/decorators/field.decorators';
 import { CreatePageTranslationDto } from './create-page-translation.dto';
 
 export class CreatePageDto {
@@ -17,8 +19,6 @@ export class CreatePageDto {
   @EnumField(() => EPageStatusType)
   status!: EPageStatusType;
 
-  @ValidateNested()
-  @Type(() => CreatePageTranslationDto)
-  @IsNotEmpty()
+  @ClassField(() => CreatePageTranslationDto, { each: true, isArray: true })
   translations: CreatePageTranslationDto[];
 }
