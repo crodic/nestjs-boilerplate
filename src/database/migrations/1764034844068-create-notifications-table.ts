@@ -10,7 +10,7 @@ export class CreateNotificationsTable1764034844068
             CREATE TABLE "notification-recipients" (
                 "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
                 "notification_id" uuid NOT NULL,
-                "user_id" character varying NOT NULL,
+                "user_id" uuid NOT NULL,
                 "isRead" boolean NOT NULL DEFAULT false,
                 "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
                 CONSTRAINT "PK_notification_recipient_id" PRIMARY KEY ("id")
@@ -19,7 +19,7 @@ export class CreateNotificationsTable1764034844068
     await queryRunner.query(`
             CREATE TABLE "notifications" (
                 "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
-                "actor_id" character varying,
+                "actor_id" uuid,
                 "title" character varying(255) NOT NULL,
                 "message" text,
                 "metadata" jsonb DEFAULT '{}',

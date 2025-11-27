@@ -36,7 +36,7 @@ async function bootstrap() {
       contentSecurityPolicy: {
         directives: {
           defaultSrc: ["'self'"],
-          imgSrc: ["'self'", 'data:', 'http://localhost:5173'],
+          imgSrc: ["'self'", 'data:', 'http://localhost:5174'],
         },
       },
     }),

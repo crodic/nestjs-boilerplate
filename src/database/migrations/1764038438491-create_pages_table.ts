@@ -1,10 +1,10 @@
-import { MigrationInterface, QueryRunner } from "typeorm";
+import { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class CreatePagesTable1764038438491 implements MigrationInterface {
-    name = 'CreatePagesTable1764038438491'
+  name = 'CreatePagesTable1764038438491';
 
-    public async up(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.query(`
+  public async up(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(`
             CREATE TABLE "page-translations" (
                 "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
                 "code" character varying(10) NOT NULL,
@@ -16,10 +16,10 @@ export class CreatePagesTable1764038438491 implements MigrationInterface {
                 CONSTRAINT "PK_page_translation_id" PRIMARY KEY ("id")
             )
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE TYPE "public"."page_status_enum" AS ENUM('ACTIVE', 'INACTIVE', 'DRAFT')
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE TABLE "pages" (
                 "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
                 "slug" character varying NOT NULL,
@@ -34,25 +34,29 @@ export class CreatePagesTable1764038438491 implements MigrationInterface {
                 CONSTRAINT "PK_page_id" PRIMARY KEY ("id")
             )
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             ALTER TABLE "page-translations"
             ADD CONSTRAINT "FK_page_page_translation_id" FOREIGN KEY ("page_id") REFERENCES "pages"("id") ON DELETE CASCADE ON UPDATE NO ACTION
         `);
-    }
+    await queryRunner.query(`
+      CREATE UNIQUE INDEX "UQ_page_slug" ON "pages" ("slug")
+      WHERE "deleted_at" IS NULL
+    `);
+  }
 
-    public async down(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.query(`
+  public async down(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(`DROP INDEX "public"."UQ_page_slug"`);
+    await queryRunner.query(`
             ALTER TABLE "page-translations" DROP CONSTRAINT "FK_page_page_translation_id"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             DROP TABLE "pages"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             DROP TYPE "public"."page_status_enum"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             DROP TABLE "page-translations"
         `);
-    }
-
+  }
 }

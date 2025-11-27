@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ClsService } from 'nestjs-cls';
 import { Repository } from 'typeorm';
+import { NotificationGateway } from '../notification/notification.gateway';
 import { CreatePageDto } from './dto/create-page.dto';
 import { UpdatePageDto } from './dto/update-page.dto';
 import { PageTranslationEntity } from './entities/page-translation.entity';
@@ -17,6 +18,7 @@ export class PageService {
     @InjectRepository(PageTranslationEntity)
     private readonly pageTranslationRepository: Repository<PageTranslationEntity>,
     private cls: ClsService,
+    private socket: NotificationGateway,
   ) {}
   async create(dto: CreatePageDto) {
     const userId = this.cls.get('userId');
@@ -33,6 +35,8 @@ export class PageService {
       });
 
       const savedPage = await manager.save(page);
+
+      this.socket.sendToAllExceptUser(userId, `${userId} creating new page`);
 
       return savedPage;
     });

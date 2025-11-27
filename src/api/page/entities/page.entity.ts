@@ -5,6 +5,7 @@ import {
   Column,
   DeleteDateColumn,
   Entity,
+  Index,
   OneToMany,
   PrimaryGeneratedColumn,
   Relation,
@@ -26,6 +27,7 @@ export class PageEntity extends AbstractEntity {
   @Column({
     name: 'slug',
   })
+  @Index('UQ_page_slug', { where: '"deleted_at" IS NULL', unique: true })
   slug!: string;
 
   @Column({
