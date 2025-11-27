@@ -1,5 +1,5 @@
 import { Uuid } from '@/common/types/common.type';
-import { ApiAuth } from '@/decorators/http.decorators';
+import { ApiAuth, ApiAuthWithPaginate } from '@/decorators/http.decorators';
 import {
   Body,
   Controller,
@@ -9,6 +9,7 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
+import { Paginate, PaginateQuery } from 'nestjs-paginate';
 import { CreatePageReqDto } from './dto/create-page.req.dto';
 import { PageResDto } from './dto/page.res.dto';
 import { UpdatePageDto } from './dto/update-page.dto';
@@ -28,8 +29,16 @@ export class PageController {
   }
 
   @Get()
-  findAll() {
-    return this.pageService.findAll();
+  @ApiAuthWithPaginate(
+    { type: PageResDto },
+    {
+      sortableColumns: ['id', 'createdAt'],
+      defaultSortBy: [['id', 'DESC']],
+      relations: ['translations'],
+    },
+  )
+  findAll(@Paginate() query: PaginateQuery) {
+    return this.pageService.findAll(query);
   }
 
   @Get(':id')

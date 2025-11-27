@@ -24,7 +24,7 @@ export class PageResDto {
   @StringField()
   status!: string;
 
-  @ClassField(() => PageTranslationResDto)
+  @ClassField(() => PageTranslationResDto, { isArray: true, each: true })
   @Expose()
   translations: WrapperType<PageTranslationResDto[]>;
 

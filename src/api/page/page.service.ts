@@ -3,6 +3,12 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { plainToInstance } from 'class-transformer';
 import { ClsService } from 'nestjs-cls';
+import {
+  FilterOperator,
+  paginate,
+  Paginated,
+  PaginateQuery,
+} from 'nestjs-paginate';
 import { Repository } from 'typeorm';
 import { NotificationGateway } from '../notification/notification.gateway';
 import { CreatePageReqDto } from './dto/create-page.req.dto';
@@ -46,8 +52,24 @@ export class PageService {
     });
   }
 
-  findAll() {
-    return `This action returns all page`;
+  async findAll(query: PaginateQuery): Promise<Paginated<PageResDto>> {
+    const result = await paginate(query, this.pageRepository, {
+      sortableColumns: ['id', 'createdAt'],
+      searchableColumns: ['translations.code', 'translations.title'],
+      defaultSortBy: [['id', 'DESC']],
+      ignoreSearchByInQueryParam: true,
+      filterableColumns: {
+        'translations.code': [FilterOperator.IN],
+      },
+      relations: ['translations'],
+    });
+
+    return {
+      ...result,
+      data: plainToInstance(PageResDto, result.data, {
+        excludeExtraneousValues: true,
+      }),
+    } as Paginated<PageResDto>;
   }
 
   async findOne(id: Uuid): Promise<PageResDto> {
