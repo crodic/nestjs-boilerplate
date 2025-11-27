@@ -4,9 +4,9 @@ import {
   EnumField,
   StringFieldOptional,
 } from '@/decorators/field.decorators';
-import { CreatePageTranslationDto } from './create-page-translation.dto';
+import { CreatePageTranslationReqDto } from './create-page-translation.req.dto';
 
-export class CreatePageDto {
+export class CreatePageReqDto {
   @StringFieldOptional({ minLength: 0 })
   slug?: string;
 
@@ -19,6 +19,6 @@ export class CreatePageDto {
   @EnumField(() => EPageStatusType)
   status!: EPageStatusType;
 
-  @ClassField(() => CreatePageTranslationDto, { each: true, isArray: true })
-  translations: CreatePageTranslationDto[];
+  @ClassField(() => CreatePageTranslationReqDto, { each: true, isArray: true })
+  translations: CreatePageTranslationReqDto[];
 }

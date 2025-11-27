@@ -1,3 +1,4 @@
+import { Uuid } from '@/common/types/common.type';
 import { ApiAuth } from '@/decorators/http.decorators';
 import {
   Body,
@@ -8,7 +9,8 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
-import { CreatePageDto } from './dto/create-page.dto';
+import { CreatePageReqDto } from './dto/create-page.req.dto';
+import { PageResDto } from './dto/page.res.dto';
 import { UpdatePageDto } from './dto/update-page.dto';
 import { PageService } from './page.service';
 
@@ -21,7 +23,7 @@ export class PageController {
 
   @Post()
   @ApiAuth({})
-  create(@Body() dto: CreatePageDto) {
+  create(@Body() dto: CreatePageReqDto) {
     return this.pageService.create(dto);
   }
 
@@ -31,8 +33,8 @@ export class PageController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.pageService.findOne(+id);
+  findOne(@Param('id') id: Uuid): Promise<PageResDto> {
+    return this.pageService.findOne(id);
   }
 
   @Patch(':id')

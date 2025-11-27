@@ -1,31 +1,38 @@
-import { EPageStatusType } from '@/constants/entity.enum';
+import { WrapperType } from '@/common/types/types';
 import {
-  EnumField,
+  ClassField,
   StringField,
   StringFieldOptional,
 } from '@/decorators/field.decorators';
-import { Type } from 'class-transformer';
-import { IsNotEmpty, ValidateNested } from 'class-validator';
-import { CreatePageTranslationDto } from './create-page-translation.dto';
+import { Exclude, Expose } from 'class-transformer';
+import { PageTranslationResDto } from './page-translation.res.dto';
 
-export class CreatePageDto {
-  @StringFieldOptional({ minLength: 0 })
-  slug?: string;
+@Exclude()
+export class PageResDto {
+  @StringField()
+  @Expose()
+  slug!: string;
 
-  @StringFieldOptional({ minLength: 0 })
+  @StringFieldOptional()
+  @Expose()
   metaKeywords?: string;
 
-  @StringFieldOptional({ minLength: 0 })
+  @StringFieldOptional()
+  @Expose()
   metaDescription?: string;
 
-  @EnumField(() => EPageStatusType)
-  status!: EPageStatusType;
+  @StringField()
+  status!: string;
 
-  @ValidateNested()
-  @Type(() => CreatePageTranslationDto)
-  @IsNotEmpty()
-  translations: CreatePageTranslationDto[];
+  @ClassField(() => PageTranslationResDto)
+  @Expose()
+  translations: WrapperType<PageTranslationResDto[]>;
 
   @StringField()
+  @Expose()
   createdAt: Date;
+
+  @StringField()
+  @Expose()
+  updatedAt: Date;
 }

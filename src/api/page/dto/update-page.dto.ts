@@ -1,4 +1,4 @@
 import { PartialType } from '@nestjs/swagger';
-import { CreatePageDto } from './create-page.dto';
+import { CreatePageReqDto } from './create-page.req.dto';
 
-export class UpdatePageDto extends PartialType(CreatePageDto) {}
+export class UpdatePageDto extends PartialType(CreatePageReqDto) {}
