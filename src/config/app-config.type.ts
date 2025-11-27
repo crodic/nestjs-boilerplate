@@ -9,4 +9,5 @@ export type AppConfig = {
   logLevel: string;
   logService: string;
   corsOrigin: boolean | string | RegExp | (string | RegExp)[];
+  secureHeaderOrigin: string;
 };

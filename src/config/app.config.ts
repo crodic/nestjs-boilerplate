@@ -67,6 +67,10 @@ class EnvironmentVariablesValidator {
   )
   @IsOptional()
   APP_CORS_ORIGIN: string;
+
+  @IsString()
+  @IsOptional()
+  APP_SECURE_HEADER_ORIGIN: string;
 }
 
 export default registerAs<AppConfig>('app', () => {
@@ -90,6 +94,8 @@ export default registerAs<AppConfig>('app', () => {
     logLevel: process.env.APP_LOG_LEVEL || 'warn',
     logService: process.env.APP_LOG_SERVICE || LogService.CONSOLE,
     corsOrigin: getCorsOrigin(),
+    secureHeaderOrigin:
+      process.env.APP_SECURE_HEADER_ORIGIN || `http://localhost:${port}`,
   };
 });
 

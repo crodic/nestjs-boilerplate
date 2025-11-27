@@ -29,19 +29,6 @@ async function bootstrap() {
   // Use Pino Loger
   app.useLogger(app.get(Logger));
 
-  // Setup security headers
-  app.use(
-    helmet({
-      crossOriginResourcePolicy: { policy: 'cross-origin' },
-      contentSecurityPolicy: {
-        directives: {
-          defaultSrc: ["'self'"],
-          imgSrc: ["'self'", 'data:', 'http://localhost:5174'],
-        },
-      },
-    }),
-  );
-
   // For high-traffic websites in production, it is strongly recommended to offload compression from the application server - typically in a reverse proxy (e.g., Nginx). In that case, you should not use compression middleware.
   app.use(compression());
 
@@ -61,6 +48,33 @@ async function bootstrap() {
     credentials: true,
   });
   console.info('CORS Origin:', corsOrigin);
+
+  const secureHeaderOrigin = configService.getOrThrow(
+    'app.secureHeaderOrigin',
+    {
+      infer: true,
+    },
+  );
+
+  app.use(
+    helmet({
+      crossOriginResourcePolicy: { policy: 'cross-origin' },
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'self'"],
+          imgSrc: [
+            "'self'",
+            'data:',
+            ...secureHeaderOrigin.split(',').map((s) => s.trim()),
+          ],
+        },
+      },
+    }),
+  );
+
+  console.log('Secure header for: ', [
+    ...secureHeaderOrigin.split(',').map((s) => s.trim()),
+  ]);
 
   // Use global prefix if you don't have subdomain
   app.setGlobalPrefix(
