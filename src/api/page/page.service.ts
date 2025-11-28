@@ -74,7 +74,10 @@ export class PageService {
   }
 
   async findOne(id: Uuid): Promise<PageResDto> {
-    const page = await this.pageRepository.findOneByOrFail({ id });
+    const page = await this.pageRepository.findOneOrFail({
+      where: { id },
+      relations: ['translations'],
+    });
 
     return plainToInstance(PageResDto, page, {
       excludeExtraneousValues: true,
