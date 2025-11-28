@@ -4,6 +4,10 @@ import { Exclude, Expose } from 'class-transformer';
 
 @Exclude()
 export class PageTranslationResDto {
+  @UUIDField()
+  @Expose()
+  id!: Uuid;
+
   @StringField()
   @Expose()
   title: string;

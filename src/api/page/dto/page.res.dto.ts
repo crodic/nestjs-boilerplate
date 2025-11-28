@@ -28,6 +28,7 @@ export class PageResDto {
   metaDescription?: string;
 
   @StringField()
+  @Expose()
   status!: string;
 
   @ClassField(() => PageTranslationResDto, { isArray: true, each: true })
