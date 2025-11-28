@@ -1,6 +1,8 @@
-import { StringField } from '@/decorators/field.decorators';
-import { Expose } from 'class-transformer';
+import { Uuid } from '@/common/types/common.type';
+import { StringField, UUIDField } from '@/decorators/field.decorators';
+import { Exclude, Expose } from 'class-transformer';
 
+@Exclude()
 export class PageTranslationResDto {
   @StringField()
   @Expose()
@@ -13,4 +15,7 @@ export class PageTranslationResDto {
   @StringField()
   @Expose()
   code: string;
+
+  @UUIDField()
+  pageId: Uuid;
 }

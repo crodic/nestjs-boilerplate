@@ -1,4 +1,5 @@
 import { Uuid } from '@/common/types/common.type';
+import { SYSTEM_USER_ID } from '@/constants/app.constant';
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { plainToInstance } from 'class-transformer';
@@ -13,7 +14,7 @@ import { Repository } from 'typeorm';
 import { NotificationGateway } from '../notification/notification.gateway';
 import { CreatePageReqDto } from './dto/create-page.req.dto';
 import { PageResDto } from './dto/page.res.dto';
-import { UpdatePageDto } from './dto/update-page.dto';
+import { UpdatePageReqDto } from './dto/update-page.req.dto';
 import { PageTranslationEntity } from './entities/page-translation.entity';
 import { PageEntity } from './entities/page.entity';
 
@@ -80,11 +81,52 @@ export class PageService {
     });
   }
 
-  update(id: number, updatePageDto: UpdatePageDto) {
-    return `This action updates a #${id} page`;
+  async update(id: Uuid, dto: UpdatePageReqDto) {
+    return await this.pageRepository.manager.transaction(async (manager) => {
+      const page = await manager.findOneOrFail(PageEntity, {
+        where: { id },
+        relations: ['translations'],
+      });
+
+      const existingTranslations = page.translations;
+
+      Object.assign(page, {
+        slug: dto.slug,
+        metaKeywords: dto.metaKeywords,
+        metaDescription: dto.metaDescription,
+        status: dto.status,
+        updatedBy: this.cls.get('userId') || SYSTEM_USER_ID,
+      });
+
+      const updatedTranslations: PageTranslationEntity[] = [];
+
+      for (const t of dto.translations) {
+        const existing = existingTranslations.find((tr) => tr.code === t.code);
+
+        if (existing) {
+          Object.assign(existing, t);
+          updatedTranslations.push(existing);
+        } else {
+          const newTrans = manager.create(PageTranslationEntity, {
+            ...t,
+            page,
+          });
+          updatedTranslations.push(newTrans);
+        }
+      }
+
+      page.translations = updatedTranslations;
+
+      await manager.save(page);
+
+      return plainToInstance(PageResDto, page, {
+        excludeExtraneousValues: true,
+      });
+    });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} page`;
+  async remove(id: Uuid) {
+    await this.pageRepository.findOneByOrFail({ id });
+    await this.pageRepository.softDelete(id);
   }
 }

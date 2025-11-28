@@ -1,4 +1,4 @@
-import { plainToInstance } from 'class-transformer';
+import { ClassTransformOptions, plainToInstance } from 'class-transformer';
 import {
   BaseEntity,
   Column,
@@ -43,8 +43,8 @@ export abstract class AbstractEntity extends BaseEntity {
   })
   updatedBy: string;
 
-  toDto<Dto>(dtoClass: new () => Dto): Dto {
-    return plainToInstance(dtoClass, this);
+  toDto<Dto>(dtoClass: new () => Dto, options?: ClassTransformOptions): Dto {
+    return plainToInstance(dtoClass, this, options);
   }
 
   static useDataSource(dataSource: DataSource) {
