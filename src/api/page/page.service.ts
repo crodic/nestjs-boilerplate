@@ -1,5 +1,6 @@
 import { Uuid } from '@/common/types/common.type';
 import { SYSTEM_USER_ID } from '@/constants/app.constant';
+import { stripHtmlTags } from '@/utils/helpers';
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { plainToInstance } from 'class-transformer';
@@ -10,6 +11,7 @@ import {
   Paginated,
   PaginateQuery,
 } from 'nestjs-paginate';
+import slugify from 'slugify';
 import { Repository } from 'typeorm';
 import { NotificationGateway } from '../notification/notification.gateway';
 import { CreatePageReqDto } from './dto/create-page.req.dto';
@@ -35,6 +37,20 @@ export class PageService {
     const userId = this.cls.get('userId');
 
     return await this.pageRepository.manager.transaction(async (manager) => {
+      const root = dto.translations?.find((trans) => trans.code === 'en');
+
+      dto.slug = dto.slug
+        ? dto.slug
+        : slugify(root?.title, { locale: 'vi', lower: true, trim: true });
+
+      dto.metaKeywords = dto.metaKeywords
+        ? dto.metaKeywords
+        : root.title.split(' ').join(', ');
+
+      dto.metaDescription = dto.metaDescription
+        ? dto.metaDescription
+        : stripHtmlTags(root.content);
+
       const page = manager.create(PageEntity, {
         slug: dto.slug,
         metaKeywords: dto.metaKeywords,
