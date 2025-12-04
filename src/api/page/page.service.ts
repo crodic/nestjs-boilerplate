@@ -107,7 +107,21 @@ export class PageService {
         relations: ['translations'],
       });
 
+      const root = dto.translations?.find((trans) => trans.code === 'en');
+
       const existingTranslations = page.translations;
+
+      dto.slug = dto.slug
+        ? dto.slug
+        : slugify(root?.title, { locale: 'vi', lower: true, trim: true });
+
+      dto.metaKeywords = dto.metaKeywords
+        ? dto.metaKeywords
+        : root.title.split(' ').join(', ');
+
+      dto.metaDescription = dto.metaDescription
+        ? dto.metaDescription
+        : stripHtmlTags(root.content);
 
       Object.assign(page, {
         slug: dto.slug,
