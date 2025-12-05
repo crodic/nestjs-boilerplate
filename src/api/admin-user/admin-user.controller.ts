@@ -58,6 +58,9 @@ export class AdminUserController {
     },
   )
   @ApiQuery({ name: 'email', required: false })
+  @CheckPolicies((ability: AppAbility) =>
+    ability.can(AppActions.Read, AppSubjects.Admin),
+  )
   findAll(
     @Paginate() query: PaginateQuery,
     @Query('email') email: string,
@@ -87,7 +90,7 @@ export class AdminUserController {
     statusCode: HttpStatus.CREATED,
   })
   @CheckPolicies((ability: AppAbility) =>
-    ability.can(AppActions.Create, AppSubjects.User),
+    ability.can(AppActions.Create, AppSubjects.Admin),
   )
   async createUser(
     @Body() createAdminUserDto: CreateAdminUserReqDto,
@@ -126,7 +129,7 @@ export class AdminUserController {
   @ApiAuth({ type: AdminUserResDto, summary: 'Find user by id' })
   @ApiParam({ name: 'id', type: 'String' })
   @CheckPolicies((ability: AppAbility) =>
-    ability.can(AppActions.Read, AppSubjects.User),
+    ability.can(AppActions.Read, AppSubjects.Admin),
   )
   async findUser(
     @Param('id', ParseUUIDPipe) id: Uuid,
@@ -140,7 +143,7 @@ export class AdminUserController {
   @ApiAuth({ type: AdminUserResDto, summary: 'Update user' })
   @ApiParam({ name: 'id', type: 'String' })
   @CheckPolicies((ability: AppAbility) =>
-    ability.can(AppActions.Update, AppSubjects.User),
+    ability.can(AppActions.Update, AppSubjects.Admin),
   )
   updateUser(
     @Param('id', ParseUUIDPipe) id: Uuid,
@@ -158,7 +161,7 @@ export class AdminUserController {
   })
   @ApiParam({ name: 'id', type: 'String' })
   @CheckPolicies((ability: AppAbility) =>
-    ability.can(AppActions.Delete, AppSubjects.User),
+    ability.can(AppActions.Delete, AppSubjects.Admin),
   )
   removeUser(@Param('id', ParseUUIDPipe) id: Uuid) {
     return this.adminUserService.remove(id);

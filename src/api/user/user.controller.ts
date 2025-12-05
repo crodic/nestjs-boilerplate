@@ -55,6 +55,9 @@ export class UserController {
     },
   )
   @ApiQuery({ name: 'email', required: false })
+  @CheckPolicies((ability: AppAbility) =>
+    ability.can(AppActions.Read, AppSubjects.User),
+  )
   findAll(
     @Paginate() query: PaginateQuery,
     @Query('email') email: string,

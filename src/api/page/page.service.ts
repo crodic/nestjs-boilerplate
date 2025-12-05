@@ -33,7 +33,7 @@ export class PageService {
     private socket: NotificationGateway,
   ) {}
 
-  async create(dto: CreatePageReqDto) {
+  async create(dto: CreatePageReqDto): Promise<PageResDto> {
     const userId = this.cls.get('userId');
 
     return await this.pageRepository.manager.transaction(async (manager) => {
@@ -65,7 +65,9 @@ export class PageService {
 
       this.socket.sendToAllExceptUser(userId, `${userId} creating new page`);
 
-      return savedPage;
+      return plainToInstance(PageResDto, savedPage, {
+        excludeExtraneousValues: true,
+      });
     });
   }
 
