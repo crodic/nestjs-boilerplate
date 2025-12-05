@@ -1,3 +1,4 @@
+import { CaslAbilityFactory } from '@/libs/casl/ability.factory';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { NotificationModule } from '../notification/notification.module';
@@ -12,6 +13,6 @@ import { PageService } from './page.service';
     NotificationModule,
   ],
   controllers: [PageController],
-  providers: [PageService],
+  providers: [PageService, CaslAbilityFactory],
 })
 export class PageModule {}
