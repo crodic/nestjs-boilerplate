@@ -93,7 +93,7 @@ function consoleLoggingConfig(): Options {
         {
           target: 'pino-roll',
           options: {
-            file: 'logs/app.log',
+            file: 'logs/nest.log',
             frequency: 'daily',
             mkdir: true,
             size: '10m',
