@@ -1,4 +1,3 @@
-
 import { Injectable, NestMiddleware } from '@nestjs/common';
 import { Logger } from 'nestjs-pino';
 
@@ -13,12 +12,15 @@ export class LoggerMiddleware implements NestMiddleware {
     res.on('finish', () => {
       const duration = Date.now() - start;
 
-      this.logger.log({
-        method,
-        url: originalUrl,
-        status: res.statusCode,
-        duration: `${duration}ms`,
-      }, `Application Call API`);
+      this.logger.log(
+        {
+          method,
+          url: originalUrl,
+          status: res.statusCode,
+          duration: `${duration}ms`,
+        },
+        `ApiRequest`,
+      );
     });
 
     next();
