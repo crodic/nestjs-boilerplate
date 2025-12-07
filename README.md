@@ -87,4 +87,6 @@ Please read the [docs](docs/README.md). It contains the details about the projec
 
 [Discuss on Github](https://github.com/vndevteam/nestjs-boilerplate/discussions)
 
+curl https://logdy.dev/install.sh | sh
+
 tail -F logs/\* | logdy
