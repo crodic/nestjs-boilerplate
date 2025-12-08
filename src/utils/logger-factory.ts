@@ -93,11 +93,12 @@ function consoleLoggingConfig(): Options {
         {
           target: 'pino-roll',
           options: {
-            file: 'logs/nest.log',
+            file: 'logs/',
             frequency: 'daily',
             mkdir: true,
             size: '10m',
             keep: 7,
+            dateFormat: 'yyyy-MM-dd',
           },
           level: 'info',
         },
