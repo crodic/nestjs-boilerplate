@@ -125,7 +125,7 @@ export class AdminUserService {
     });
 
     const savedUser = await this.adminUserRepository.save(newUser);
-    this.logger.debug(savedUser);
+    // this.logger.debug(savedUser);
 
     return plainToInstance(AdminUserResDto, savedUser);
   }

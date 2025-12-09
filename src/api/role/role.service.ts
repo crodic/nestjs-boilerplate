@@ -88,7 +88,7 @@ export class RoleService {
 
     const savedRole = await this.roleRepository.save(newRole);
 
-    this.logger.debug(savedRole);
+    // this.logger.debug(savedRole);
 
     return plainToInstance(RoleResDto, savedRole);
   }

@@ -148,6 +148,7 @@ async function loggerFactory(
 
   return {
     pinoHttp: pinoHttpOptions,
+    forRoutes: ['*'],
   };
 }
 
