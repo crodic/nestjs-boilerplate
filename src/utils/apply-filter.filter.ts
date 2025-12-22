@@ -1,7 +1,7 @@
 import { QueryFilter } from '@/common/interfaces/filter.interface';
 import { SelectQueryBuilder } from 'typeorm';
 
-function applyFilters<TEntity>(
+export function applyFilters<TEntity>(
   qb: SelectQueryBuilder<TEntity>,
   filters: Record<string, any>,
   availableFilters: QueryFilter[],
@@ -14,9 +14,9 @@ function applyFilters<TEntity>(
 
     filter.apply(qb, value);
   });
-}
 
-export { applyFilters };
+  return qb;
+}
 
 /**
  * Example:
