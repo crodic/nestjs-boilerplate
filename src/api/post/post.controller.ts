@@ -13,8 +13,9 @@ import {
   Put,
   Query,
 } from '@nestjs/common';
-import { ApiParam, ApiTags } from '@nestjs/swagger';
+import { ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { Paginate, Paginated, PaginateQuery } from 'nestjs-paginate';
+import { ParseQueryPipe } from 'src/pipes/parse-query.pipe';
 import { CreatePostReqDto } from './dto/create-post.req.dto';
 import { PostListReqDto } from './dto/post-list.req.dto';
 import { PostResDto } from './dto/post.res.dto';
@@ -35,10 +36,15 @@ export class PostController {
     summary: 'Get paginated posts',
     isPaginated: true,
   })
+  @ApiQuery({
+    name: 'filter[title]',
+    required: false,
+    type: String,
+    example: 'Lorem ipsum dolor sit amet',
+  })
   findAllPaginated(
-    @Query() dto: PostListReqDto,
+    @Query(new ParseQueryPipe()) dto: PostListReqDto,
   ): Promise<OffsetPaginatedDto<PostResDto>> {
-    console.log('DTO: ', dto);
     return this.postService.findAllWithPaginate(dto);
   }
 

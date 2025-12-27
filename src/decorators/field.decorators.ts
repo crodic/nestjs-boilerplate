@@ -602,3 +602,19 @@ export function ArrayFieldOptional(
     ArrayField(itemType, { required: false, ...options }),
   );
 }
+
+export interface DeepObjectFieldOptions {
+  each?: boolean;
+}
+
+export function DeepObjectField(
+  dto: new () => any,
+  options: DeepObjectFieldOptions = {},
+): PropertyDecorator {
+  const { each = false } = options;
+
+  return applyDecorators(
+    Type(() => dto),
+    ValidateNested({ each }),
+  );
+}

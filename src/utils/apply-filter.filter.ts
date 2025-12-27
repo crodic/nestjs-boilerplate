@@ -3,7 +3,7 @@ import { SelectQueryBuilder } from 'typeorm';
 
 export function applyFilters<TEntity>(
   qb: SelectQueryBuilder<TEntity>,
-  filters: Record<string, any>,
+  filters: Record<string, any> = {},
   availableFilters: QueryFilter[],
 ) {
   const map = new Map(availableFilters.map((f) => [f.key, f]));

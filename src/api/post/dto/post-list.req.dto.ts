@@ -1,7 +1,8 @@
 import { PageOptionsDto } from '@/common/dto/offset-pagination/page-options.dto';
-import { StringFieldOptional } from '@/decorators/field.decorators';
+import { DeepObjectField } from '@/decorators/field.decorators';
+import { PostFilterReqDto } from './post-filter.req.dto';
 
 export class PostListReqDto extends PageOptionsDto {
-  @StringFieldOptional({ example: 'Lorem issue dolor sit amet' })
-  title?: string;
+  @DeepObjectField(PostFilterReqDto)
+  filter?: PostFilterReqDto;
 }

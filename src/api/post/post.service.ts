@@ -35,7 +35,7 @@ export class PostService {
       .createQueryBuilder('post')
       .leftJoinAndSelect('post.user', 'user');
 
-    applyFilters(qb, dto ?? {}, POST_FILTERS);
+    applyFilters(qb, dto.filter, POST_FILTERS);
 
     applySorts(qb, dto.orderBy, POST_SORTS_V2, {
       key: 'id',
