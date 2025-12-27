@@ -1,5 +1,7 @@
+import { OffsetPaginatedDto } from '@/common/dto/offset-pagination/paginated.dto';
 import { Uuid } from '@/common/types/common.type';
-import { ApiAuth, ApiAuthWithPaginate } from '@/decorators/http.decorators';
+import { ApiAuthWithPaginate } from '@/decorators/http.decorators';
+import { ApiAuth, ApiPublic } from '@/decorators/http.decorators-v2';
 import {
   Body,
   Controller,
@@ -9,10 +11,12 @@ import {
   ParseUUIDPipe,
   Post,
   Put,
+  Query,
 } from '@nestjs/common';
 import { ApiParam, ApiTags } from '@nestjs/swagger';
 import { Paginate, Paginated, PaginateQuery } from 'nestjs-paginate';
 import { CreatePostReqDto } from './dto/create-post.req.dto';
+import { PostListReqDto } from './dto/post-list.req.dto';
 import { PostResDto } from './dto/post.res.dto';
 import { UpdatePostReqDto } from './dto/update-post.req.dto';
 import { PostService } from './post.service';
@@ -24,6 +28,19 @@ import { PostService } from './post.service';
 })
 export class PostController {
   constructor(private readonly postService: PostService) {}
+
+  @Get('/paginated')
+  @ApiPublic({
+    type: PostResDto,
+    summary: 'Get paginated posts',
+    isPaginated: true,
+  })
+  findAllPaginated(
+    @Query() dto: PostListReqDto,
+  ): Promise<OffsetPaginatedDto<PostResDto>> {
+    console.log('DTO: ', dto);
+    return this.postService.findAllWithPaginate(dto);
+  }
 
   @Get('/')
   @ApiAuthWithPaginate(

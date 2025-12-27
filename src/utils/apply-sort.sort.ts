@@ -36,3 +36,37 @@ export function applySort<T>(
 
   return qb;
 }
+
+export function applySorts<T>(
+  qb: SelectQueryBuilder<T>,
+  sort: string | undefined,
+  availableSorts: QuerySort<T>[],
+  defaultSort?: { key: string; direction: 'asc' | 'desc' },
+): SelectQueryBuilder<T> {
+  const sortMap = new Map(availableSorts.map((s) => [s.key, s]));
+
+  if (!sort || sort.trim() === '') {
+    if (defaultSort) {
+      const sorter = sortMap.get(defaultSort.key);
+      if (sorter) {
+        sorter.apply(qb, defaultSort.direction);
+      }
+    }
+    return qb;
+  }
+
+  sort.split(',').forEach((part) => {
+    const [key, rawDirection] = part.split(':');
+
+    if (!key) return;
+
+    const direction: SortDirection = rawDirection === 'desc' ? 'desc' : 'asc';
+
+    const sorter = sortMap.get(key);
+    if (!sorter) return;
+
+    sorter.apply(qb, direction);
+  });
+
+  return qb;
+}
