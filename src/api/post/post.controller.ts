@@ -1,7 +1,10 @@
 import { OffsetPaginatedDto } from '@/common/dto/offset-pagination/paginated.dto';
 import { Uuid } from '@/common/types/common.type';
-import { ApiAuthWithPaginate } from '@/decorators/http.decorators';
-import { ApiAuth, ApiPublic } from '@/decorators/http.decorators-v2';
+import {
+  ApiAuth,
+  ApiAuthWithPaginate,
+  SimpleApiPublic,
+} from '@/decorators/http.decorators';
 import {
   Body,
   Controller,
@@ -31,7 +34,7 @@ export class PostController {
   constructor(private readonly postService: PostService) {}
 
   @Get('/paginated')
-  @ApiPublic({
+  @SimpleApiPublic({
     type: PostResDto,
     summary: 'Get paginated posts',
     isPaginated: true,
