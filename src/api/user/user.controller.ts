@@ -15,10 +15,9 @@ import {
   ParseUUIDPipe,
   Post,
   Put,
-  Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiParam, ApiTags } from '@nestjs/swagger';
 import {
   FilterOperator,
   Paginate,
@@ -45,24 +44,23 @@ export class UserController {
   @ApiAuthWithPaginate(
     { type: UserResDto, summary: 'Get all users with pagination' },
     {
+      searchableColumns: ['username', 'email'],
       sortableColumns: ['id', 'email', 'username', 'created_at', 'updated_at'],
       defaultSortBy: [['id', 'DESC']],
       relations: ['posts'],
       multiWordSearch: true,
       filterableColumns: {
         createdAt: [FilterOperator.GTE, FilterOperator.LTE],
+        email: [FilterOperator.ILIKE],
+        username: [FilterOperator.ILIKE],
       },
     },
   )
-  @ApiQuery({ name: 'email', required: false })
   @CheckPolicies((ability: AppAbility) =>
     ability.can(AppActions.Read, AppSubjects.User),
   )
-  findAll(
-    @Paginate() query: PaginateQuery,
-    @Query('email') email: string,
-  ): Promise<Paginated<UserResDto>> {
-    return this.userService.findAllUser(query, email);
+  findAll(@Paginate() query: PaginateQuery): Promise<Paginated<UserResDto>> {
+    return this.userService.findAllUser(query);
   }
 
   @ApiAuth({
