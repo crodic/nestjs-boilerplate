@@ -167,6 +167,37 @@ export const ApiAuthWithPaginate = (
   );
 };
 
+export const ApiPublicWithPaginate = (
+  options: IApiOptions<Type<any>> = {},
+  paginateOptions?: PaginateConfig<any>,
+) => {
+  const defaultStatusCode = HttpStatus.OK;
+  const defaultErrorResponses = [
+    HttpStatus.BAD_REQUEST,
+    HttpStatus.FORBIDDEN,
+    HttpStatus.NOT_FOUND,
+    HttpStatus.UNPROCESSABLE_ENTITY,
+    HttpStatus.INTERNAL_SERVER_ERROR,
+  ];
+
+  const errorResponses = (options.errorResponses || defaultErrorResponses).map(
+    (statusCode) =>
+      ApiResponse({
+        status: statusCode,
+        type: ErrorDto,
+        description: STATUS_CODES[statusCode],
+      }),
+  );
+
+  return applyDecorators(
+    Public(),
+    ApiOperation({ summary: options.summary }),
+    HttpCode(options.statusCode || defaultStatusCode),
+    PaginatedSwaggerDocs(options.type, paginateOptions),
+    ...errorResponses,
+  );
+};
+
 // Simple
 type PaginationType = 'offset' | 'cursor';
 
