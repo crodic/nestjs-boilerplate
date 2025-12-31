@@ -16,6 +16,7 @@ import { Repository } from 'typeorm';
 import { NotificationGateway } from '../notification/notification.gateway';
 import { CreatePageReqDto } from './dto/create-page.req.dto';
 import { PageResDto } from './dto/page.res.dto';
+import { QueryParamsListReqDto } from './dto/query-params-list.req.dto';
 import { UpdatePageReqDto } from './dto/update-page.req.dto';
 import { PageTranslationEntity } from './entities/page-translation.entity';
 import { PageEntity } from './entities/page.entity';
@@ -71,8 +72,35 @@ export class PageService {
     });
   }
 
-  async findAll(query: PaginateQuery): Promise<Paginated<PageResDto>> {
-    const result = await paginate(query, this.pageRepository, {
+  async findAll(
+    paginateQuery: PaginateQuery,
+    query: QueryParamsListReqDto,
+  ): Promise<Paginated<PageResDto>> {
+    const qb = this.pageRepository.createQueryBuilder('page');
+
+    if (query.title_en) {
+      qb.leftJoin(
+        'page.translations',
+        'enTranslation',
+        'enTranslation.code = :enCode',
+        { enCode: 'en' },
+      ).andWhere('enTranslation.title ILIKE :enTitle', {
+        enTitle: `%${query.title_en}%`,
+      });
+    }
+
+    if (query.title_vi) {
+      qb.leftJoin(
+        'page.translations',
+        'viTranslation',
+        'viTranslation.code = :viCode',
+        { viCode: 'vi' },
+      ).andWhere('viTranslation.title ILIKE :viTitle', {
+        viTitle: `%${query.title_vi}%`,
+      });
+    }
+
+    const result = await paginate(paginateQuery, qb, {
       sortableColumns: ['id', 'createdAt'],
       searchableColumns: ['translations.code', 'translations.title'],
       defaultSortBy: [['id', 'DESC']],

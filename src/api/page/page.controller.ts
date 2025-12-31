@@ -16,12 +16,14 @@ import {
   Param,
   Post,
   Put,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ApiParam, ApiTags } from '@nestjs/swagger';
 import { Paginate, Paginated, PaginateQuery } from 'nestjs-paginate';
 import { CreatePageReqDto } from './dto/create-page.req.dto';
 import { PageResDto } from './dto/page.res.dto';
+import { QueryParamsListReqDto } from './dto/query-params-list.req.dto';
 import { UpdatePageReqDto } from './dto/update-page.req.dto';
 import { PageService } from './page.service';
 
@@ -59,8 +61,11 @@ export class PageController {
   @CheckPolicies((ability: AppAbility) =>
     ability.can(AppActions.Read, AppSubjects.Page),
   )
-  findAll(@Paginate() query: PaginateQuery): Promise<Paginated<PageResDto>> {
-    return this.pageService.findAll(query);
+  findAll(
+    @Paginate() paginate: PaginateQuery,
+    @Query() query: QueryParamsListReqDto,
+  ): Promise<Paginated<PageResDto>> {
+    return this.pageService.findAll(paginate, query);
   }
 
   @Get(':id')

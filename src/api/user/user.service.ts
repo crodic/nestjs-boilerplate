@@ -35,8 +35,6 @@ export class UserService {
   async findAllUser(query: PaginateQuery): Promise<Paginated<UserResDto>> {
     const queryBuilder = this.userRepository.createQueryBuilder('user');
 
-    console.log(query);
-
     const result = await paginate(query, queryBuilder, {
       sortableColumns: ['id', 'email', 'username', 'createdAt', 'updatedAt'],
       searchableColumns: ['username', 'email'],
