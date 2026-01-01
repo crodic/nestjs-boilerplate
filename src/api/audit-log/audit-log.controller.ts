@@ -38,9 +38,12 @@ export class AuditLogController {
       sortableColumns: ['id', 'created_at'],
       defaultSortBy: [['id', 'DESC']],
       relations: ['posts'],
-      multiWordSearch: true,
       filterableColumns: {
         createdAt: [FilterOperator.GTE, FilterOperator.LTE],
+        action: [FilterOperator.IN],
+        entity: [FilterOperator.ILIKE],
+        entityId: [FilterOperator.EQ],
+        userId: [FilterOperator.EQ],
       },
     },
   )

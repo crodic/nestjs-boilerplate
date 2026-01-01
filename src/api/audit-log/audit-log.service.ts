@@ -23,10 +23,13 @@ export class AuditLogService {
   async findAll(query: PaginateQuery): Promise<Paginated<AuditLogResDto>> {
     const result = await paginate(query, this.auditLogRepository, {
       sortableColumns: ['id', 'createdAt'],
-      ignoreSearchByInQueryParam: true,
       defaultSortBy: [['createdAt', 'DESC']],
       filterableColumns: {
         createdAt: [FilterOperator.GTE, FilterOperator.LTE],
+        action: [FilterOperator.IN],
+        entity: [FilterOperator.ILIKE],
+        entityId: [FilterOperator.ILIKE],
+        userId: [FilterOperator.EQ],
       },
     });
 

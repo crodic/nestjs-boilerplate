@@ -16,11 +16,15 @@ import {
   ParseUUIDPipe,
   Post,
   Put,
-  Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
-import { Paginate, Paginated, PaginateQuery } from 'nestjs-paginate';
+import { ApiParam, ApiTags } from '@nestjs/swagger';
+import {
+  FilterOperator,
+  Paginate,
+  Paginated,
+  PaginateQuery,
+} from 'nestjs-paginate';
 import { CreateRoleReqDto } from './dto/create-role.req.dto';
 import { RoleResDto } from './dto/role.res.dto';
 import { UpdateRoleReqDto } from './dto/update-role.req.dto';
@@ -49,14 +53,13 @@ export class RoleController {
         'updated_at',
       ],
       defaultSortBy: [['id', 'DESC']],
+      filterableColumns: {
+        name: [FilterOperator.ILIKE],
+      },
     },
   )
-  @ApiQuery({ name: 'name', required: false })
-  findAll(
-    @Paginate() query: PaginateQuery,
-    @Query('name') name: string,
-  ): Promise<Paginated<RoleResDto>> {
-    return this.roleService.findAll(query, name);
+  findAll(@Paginate() query: PaginateQuery): Promise<Paginated<RoleResDto>> {
+    return this.roleService.findAll(query);
   }
 
   @Post()

@@ -130,25 +130,19 @@ export class AdminUserService {
     return plainToInstance(AdminUserResDto, savedUser);
   }
 
-  async findAllUser(
-    query: PaginateQuery,
-    email: string,
-  ): Promise<Paginated<AdminUserResDto>> {
+  async findAllUser(query: PaginateQuery): Promise<Paginated<AdminUserResDto>> {
     const queryBuilder = this.adminUserRepository.createQueryBuilder('admin');
-
-    if (email) {
-      queryBuilder.andWhere('admin.email LIKE :title', {
-        title: `%${email}%`,
-      });
-    }
 
     const result = await paginate(query, queryBuilder, {
       sortableColumns: ['id', 'email', 'username', 'createdAt', 'updatedAt'],
-      searchableColumns: ['username', 'email', 'role.name'],
-      ignoreSearchByInQueryParam: true,
+      searchableColumns: ['username', 'email'],
       defaultSortBy: [['id', 'DESC']],
       filterableColumns: {
         'role.id': [FilterOperator.IN],
+        email: [FilterOperator.ILIKE],
+        username: [FilterOperator.ILIKE],
+        fullName: [FilterOperator.ILIKE],
+        createdAt: [FilterOperator.GTE, FilterOperator.LTE, FilterOperator.BTW],
       },
       relations: ['role'],
     });

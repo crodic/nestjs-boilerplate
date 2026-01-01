@@ -18,14 +18,18 @@ import {
   ParseUUIDPipe,
   Post,
   Put,
-  Query,
   UploadedFile,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiConsumes, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
-import { Paginate, Paginated, PaginateQuery } from 'nestjs-paginate';
+import { ApiConsumes, ApiParam, ApiTags } from '@nestjs/swagger';
+import {
+  FilterOperator,
+  Paginate,
+  Paginated,
+  PaginateQuery,
+} from 'nestjs-paginate';
 import { AdminUserService } from './admin-user.service';
 import { avatarUploadOption } from './configs/multer.config';
 import { AdminUserResDto } from './dto/admin-user.res.dto';
@@ -55,17 +59,22 @@ export class AdminUserController {
       sortableColumns: ['id', 'email', 'username', 'created_at', 'updated_at'],
       defaultSortBy: [['id', 'DESC']],
       relations: ['role'],
+      filterableColumns: {
+        createdAt: [FilterOperator.BTW],
+        email: [FilterOperator.ILIKE],
+        username: [FilterOperator.ILIKE],
+        'role.id': [FilterOperator.IN],
+        fullName: [FilterOperator.ILIKE],
+      },
     },
   )
-  @ApiQuery({ name: 'email', required: false })
   @CheckPolicies((ability: AppAbility) =>
     ability.can(AppActions.Read, AppSubjects.Admin),
   )
   findAll(
     @Paginate() query: PaginateQuery,
-    @Query('email') email: string,
   ): Promise<Paginated<AdminUserResDto>> {
-    return this.adminUserService.findAllUser(query, email);
+    return this.adminUserService.findAllUser(query);
   }
 
   // --------------------------------------------------

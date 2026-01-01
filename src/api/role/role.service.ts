@@ -6,7 +6,12 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { plainToInstance } from 'class-transformer';
 import { assert } from 'console';
-import { paginate, Paginated, PaginateQuery } from 'nestjs-paginate';
+import {
+  FilterOperator,
+  paginate,
+  Paginated,
+  PaginateQuery,
+} from 'nestjs-paginate';
 import { EntityManager, Repository } from 'typeorm';
 import { CreateRoleReqDto } from './dto/create-role.req.dto';
 import { RoleResDto } from './dto/role.res.dto';
@@ -24,23 +29,16 @@ export class RoleService {
     private readonly cacheManager: Cache,
   ) {}
 
-  async findAll(
-    query: PaginateQuery,
-    name: string,
-  ): Promise<Paginated<RoleResDto>> {
+  async findAll(query: PaginateQuery): Promise<Paginated<RoleResDto>> {
     const queryBuilder = this.roleRepository.createQueryBuilder('role');
-
-    if (name) {
-      queryBuilder.andWhere('role.name LIKE :title', {
-        title: `%${name}%`,
-      });
-    }
 
     const result = await paginate(query, queryBuilder, {
       sortableColumns: ['id', 'name', 'description', 'createdAt', 'updatedAt'],
       searchableColumns: ['name', 'description'],
-      ignoreSearchByInQueryParam: true,
       defaultSortBy: [['id', 'DESC']],
+      filterableColumns: {
+        name: [FilterOperator.ILIKE],
+      },
     });
 
     return {
