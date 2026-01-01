@@ -17,7 +17,12 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
-import { Paginate, Paginated, PaginateQuery } from 'nestjs-paginate';
+import {
+  FilterOperator,
+  Paginate,
+  Paginated,
+  PaginateQuery,
+} from 'nestjs-paginate';
 import { ParseQueryPipe } from 'src/pipes/parse-query.pipe';
 import { CreatePostReqDto } from './dto/create-post.req.dto';
 import { PostListReqDto } from './dto/post-list.req.dto';
@@ -55,10 +60,13 @@ export class PostController {
   @ApiAuthWithPaginate(
     { type: PostResDto },
     {
-      sortableColumns: ['id', 'title', 'content'],
+      sortableColumns: ['id', 'title', 'updatedAt', 'createdAt'],
       defaultSortBy: [['id', 'DESC']],
       searchableColumns: ['title', 'content'],
       relations: ['user'],
+      filterableColumns: {
+        title: [FilterOperator.ILIKE],
+      },
     },
   )
   findAll(@Paginate() query: PaginateQuery): Promise<Paginated<PostResDto>> {

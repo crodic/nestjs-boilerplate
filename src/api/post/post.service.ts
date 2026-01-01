@@ -8,6 +8,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import assert from 'assert';
 import { plainToInstance } from 'class-transformer';
 import {
+  FilterOperator,
   Paginated,
   paginate as paginateLib,
   PaginateQuery,
@@ -52,10 +53,13 @@ export class PostService {
 
   async findAll(query: PaginateQuery): Promise<Paginated<PostResDto>> {
     const result = await paginateLib(query, this.postEntity, {
-      sortableColumns: ['id', 'title', 'content'],
+      sortableColumns: ['id', 'title', 'createdAt', 'updatedAt'],
       searchableColumns: ['title', 'content'],
       defaultSortBy: [['id', 'DESC']],
       relations: ['user'],
+      filterableColumns: {
+        title: [FilterOperator.ILIKE],
+      },
     });
 
     return {

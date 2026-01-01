@@ -50,7 +50,7 @@ export class UserController {
       relations: ['posts'],
       multiWordSearch: true,
       filterableColumns: {
-        createdAt: [FilterOperator.GTE, FilterOperator.LTE],
+        createdAt: [FilterOperator.BTW],
         email: [FilterOperator.ILIKE],
         username: [FilterOperator.ILIKE],
       },
