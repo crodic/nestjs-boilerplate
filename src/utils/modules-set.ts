@@ -22,6 +22,7 @@ import {
   QueryResolver,
 } from 'nestjs-i18n';
 import { LoggerModule } from 'nestjs-pino';
+import { NestLensModule } from 'nestlens';
 import path from 'path';
 import { DataSource, DataSourceOptions } from 'typeorm';
 import loggerFactory from './logger-factory';
@@ -35,6 +36,10 @@ function generateModulesSet() {
     }),
   ];
   let customModules: ModuleMetadata['imports'] = [];
+
+  const nestLensModule = NestLensModule.forRoot({
+    enabled: true,
+  });
 
   const dbModule = TypeOrmModule.forRootAsync({
     useClass: TypeOrmConfigService,
@@ -124,41 +129,6 @@ function generateModulesSet() {
     inject: [ConfigService],
   });
 
-  //   const cacheModule = CacheModule.registerAsync({
-  //   imports: [ConfigModule],
-  //   useFactory: async (configService: ConfigService<AllConfigType>) => {
-  //     const host = configService.getOrThrow('redis.host', {
-  //       infer: true,
-  //     });
-  //     const port = configService.getOrThrow('redis.port', {
-  //       infer: true,
-  //     });
-  //     const password = configService.getOrThrow('redis.password', {
-  //       infer: true,
-  //     });
-  //     const tls = configService.get('redis.tlsEnabled', { infer: true });
-
-  //     const url = `redis://${password ? `:${password}@` : ''}${host}:${port}`;
-
-  //     const store = new KeyvRedis<CacheStore>(url);
-
-  //     store.on('error', (err) => {
-  //       console.error(err);
-  //     });
-
-  //     store.on('connect', () => {
-  //       console.log('Connected to Redis');
-  //     });
-
-  //     return {
-  //       store: store as unknown as CacheStore,
-  //       ttl: 60 * 1000,
-  //     };
-  //   },
-  //   isGlobal: true,
-  //   inject: [ConfigService],
-  // });
-
   const modulesSet = process.env.MODULES_SET || 'monolith';
 
   switch (modulesSet) {
@@ -172,6 +142,7 @@ function generateModulesSet() {
         i18nModule,
         loggerModule,
         MailModule,
+        nestLensModule,
       ];
       break;
     case 'api':
@@ -183,6 +154,7 @@ function generateModulesSet() {
         i18nModule,
         loggerModule,
         MailModule,
+        nestLensModule,
       ];
       break;
     case 'background':
@@ -193,6 +165,7 @@ function generateModulesSet() {
         dbModule,
         i18nModule,
         loggerModule,
+        nestLensModule,
       ];
       break;
     default:

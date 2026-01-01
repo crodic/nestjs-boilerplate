@@ -32,6 +32,12 @@ export class AuthGuard implements CanActivate {
     );
 
     const request = context.switchToHttp().getRequest();
+    const url = request.url;
+
+    if (url.startsWith('/nestlens') || url.startsWith('/__nestlens__')) {
+      return true;
+    }
+
     const accessToken = this.extractTokenFromHeader(request);
 
     if (isAuthOptional && !accessToken) {

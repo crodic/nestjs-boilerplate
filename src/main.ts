@@ -83,6 +83,12 @@ async function bootstrap() {
       exclude: [
         { method: RequestMethod.GET, path: '/' },
         { method: RequestMethod.GET, path: 'health' },
+        { method: RequestMethod.GET, path: 'nestlens' },
+        { method: RequestMethod.GET, path: 'nestlens/(.*)' },
+        { method: RequestMethod.GET, path: '__nestlens__/(.*)' },
+        { method: RequestMethod.POST, path: '__nestlens__/(.*)' },
+        { method: RequestMethod.PUT, path: '__nestlens__/(.*)' },
+        { method: RequestMethod.DELETE, path: '__nestlens__/(.*)' },
       ],
     },
   );
