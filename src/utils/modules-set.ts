@@ -39,6 +39,17 @@ function generateModulesSet() {
 
   const nestLensModule = NestLensModule.forRoot({
     enabled: true,
+    storage: {
+      driver: 'redis',
+      memory: {
+        maxEntries: 100000,
+      },
+      redis: {
+        host: process.env.REDIS_HOST,
+        port: +process.env.REDIS_PORT,
+        password: process.env.REDIS_PASSWORD,
+      },
+    },
   });
 
   const dbModule = TypeOrmModule.forRootAsync({
