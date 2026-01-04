@@ -23,6 +23,7 @@ import {
   HttpStatus,
   Inject,
   Injectable,
+  Logger,
   UnauthorizedException,
 } from '@nestjs/common';
 import { randomStringGenerator } from '@nestjs/common/utils/random-string-generator.util';
@@ -68,6 +69,7 @@ type Token = Branded<
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
   constructor(
     private readonly configService: ConfigService<AllConfigType>,
     private readonly jwtService: JwtService,

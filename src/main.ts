@@ -13,7 +13,7 @@ import compression from 'compression';
 import helmet from 'helmet';
 import { ClsService } from 'nestjs-cls';
 import { updateGlobalConfig } from 'nestjs-paginate';
-import { Logger } from 'nestjs-pino';
+import { NestLensLogger } from 'nestlens';
 import { AuthService } from './api/auth/auth.service';
 import { AppModule } from './app.module';
 import { type AllConfigType } from './config/config.type';
@@ -27,8 +27,8 @@ async function bootstrap() {
   });
 
   // Use Pino Loger
-  app.useLogger(app.get(Logger));
-
+  // app.useLogger(app.get(Logger));
+  app.useLogger(app.get(NestLensLogger));
   // For high-traffic websites in production, it is strongly recommended to offload compression from the application server - typically in a reverse proxy (e.g., Nginx). In that case, you should not use compression middleware.
   app.use(compression());
 

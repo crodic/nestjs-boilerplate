@@ -7,8 +7,11 @@ import { Environment } from '@/constants/app.constant';
 import databaseConfig from '@/database/config/database.config';
 import { TypeOrmConfigService } from '@/database/typeorm-config.service';
 import mailConfig from '@/mail/config/mail.config';
+import { MailWatcherModule } from '@/mail/mail-watcher.module';
 import { MailModule } from '@/mail/mail.module';
 import redisConfig from '@/redis/config/redis.config';
+import { ExpressAdapter } from '@bull-board/express';
+import { BullBoardModule } from '@bull-board/nestjs';
 import { BullModule } from '@nestjs/bullmq';
 import { CacheModule } from '@nestjs/cache-manager';
 import { ModuleMetadata } from '@nestjs/common';
@@ -22,10 +25,10 @@ import {
   QueryResolver,
 } from 'nestjs-i18n';
 import { LoggerModule } from 'nestjs-pino';
-import { NestLensModule } from 'nestlens';
 import path from 'path';
 import { DataSource, DataSourceOptions } from 'typeorm';
 import loggerFactory from './logger-factory';
+import { MonitoringModule } from './monitoring.module';
 
 function generateModulesSet() {
   const imports: ModuleMetadata['imports'] = [
@@ -36,21 +39,6 @@ function generateModulesSet() {
     }),
   ];
   let customModules: ModuleMetadata['imports'] = [];
-
-  const nestLensModule = NestLensModule.forRoot({
-    enabled: true,
-    storage: {
-      driver: 'redis',
-      memory: {
-        maxEntries: 100000,
-      },
-      redis: {
-        host: process.env.REDIS_HOST,
-        port: +process.env.REDIS_PORT,
-        password: process.env.REDIS_PASSWORD,
-      },
-    },
-  });
 
   const dbModule = TypeOrmModule.forRootAsync({
     useClass: TypeOrmConfigService,
@@ -82,6 +70,11 @@ function generateModulesSet() {
       };
     },
     inject: [ConfigService],
+  });
+
+  const bullBoardModule = BullBoardModule.forRoot({
+    route: '/queues',
+    adapter: ExpressAdapter, // Or FastifyAdapter from `@bull-board/fastify`
   });
 
   const i18nModule = I18nModule.forRootAsync({
@@ -145,19 +138,22 @@ function generateModulesSet() {
   switch (modulesSet) {
     case 'monolith':
       customModules = [
+        MonitoringModule,
         ApiModule,
         bullModule,
+        bullBoardModule,
         BackgroundModule,
         cacheModule,
         dbModule,
         i18nModule,
         loggerModule,
         MailModule,
-        nestLensModule,
+        MailWatcherModule,
       ];
       break;
     case 'api':
       customModules = [
+        MonitoringModule,
         ApiModule,
         bullModule,
         cacheModule,
@@ -165,18 +161,19 @@ function generateModulesSet() {
         i18nModule,
         loggerModule,
         MailModule,
-        nestLensModule,
+        bullBoardModule,
       ];
       break;
     case 'background':
       customModules = [
+        MonitoringModule,
         bullModule,
         BackgroundModule,
         cacheModule,
         dbModule,
         i18nModule,
         loggerModule,
-        nestLensModule,
+        bullBoardModule,
       ];
       break;
     default:

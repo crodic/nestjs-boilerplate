@@ -18,5 +18,6 @@ import { EmailProcessor } from './email.processor';
     }),
   ],
   providers: [EmailQueueService, EmailProcessor, EmailQueueEvents],
+  exports: [EmailQueueService],
 })
 export class EmailQueueModule {}
