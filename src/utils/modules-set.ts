@@ -6,6 +6,7 @@ import { AllConfigType } from '@/config/config.type';
 import { Environment } from '@/constants/app.constant';
 import databaseConfig from '@/database/config/database.config';
 import { TypeOrmConfigService } from '@/database/typeorm-config.service';
+import { LibsModule } from '@/libs/libs.module';
 import mailConfig from '@/mail/config/mail.config';
 import { MailWatcherModule } from '@/mail/mail-watcher.module';
 import { MailModule } from '@/mail/mail.module';
@@ -28,7 +29,6 @@ import { LoggerModule } from 'nestjs-pino';
 import path from 'path';
 import { DataSource, DataSourceOptions } from 'typeorm';
 import loggerFactory from './logger-factory';
-import { MonitoringModule } from './monitoring.module';
 
 function generateModulesSet() {
   const imports: ModuleMetadata['imports'] = [
@@ -138,7 +138,7 @@ function generateModulesSet() {
   switch (modulesSet) {
     case 'monolith':
       customModules = [
-        MonitoringModule,
+        LibsModule,
         ApiModule,
         bullModule,
         bullBoardModule,
@@ -153,7 +153,7 @@ function generateModulesSet() {
       break;
     case 'api':
       customModules = [
-        MonitoringModule,
+        LibsModule,
         ApiModule,
         bullModule,
         cacheModule,
@@ -166,7 +166,7 @@ function generateModulesSet() {
       break;
     case 'background':
       customModules = [
-        MonitoringModule,
+        LibsModule,
         bullModule,
         BackgroundModule,
         cacheModule,
