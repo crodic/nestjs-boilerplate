@@ -1,3 +1,5 @@
+import { AdminUserEntity } from '@/api/admin-user/entities/admin-user.entity';
+import { RoleEntity } from '@/api/role/entities/role.entity';
 import {
   IEmailJob,
   IForgotPasswordEmailJob,
@@ -35,28 +37,22 @@ import { plainToInstance } from 'class-transformer';
 import crypto from 'crypto';
 import ms from 'ms';
 import { Repository } from 'typeorm';
-import { AdminUserEntity } from '../admin-user/entities/admin-user.entity';
-import { RoleEntity } from '../role/entities/role.entity';
-import { UserEntity } from '../user/entities/user.entity';
-import { AdminUserLoginReqDto } from './dto/admin-users/admin-user-login.req.dto';
-import { AdminUserLoginResDto } from './dto/admin-users/admin-user-login.res.dto';
-import { AdminUserRegisterReqDto } from './dto/admin-users/admin-user-register.req.dto';
-import { ForgotPasswordReqDto } from './dto/forgot-password.req.dto';
-import { ForgotPasswordResDto } from './dto/forgot-password.res.dto';
-import { RefreshReqDto } from './dto/refresh.req.dto';
-import { RefreshResDto } from './dto/refresh.res.dto';
-import { RegisterResDto } from './dto/register.res.dto';
-import { ResendEmailVerifyReqDto } from './dto/resend-email-verify.req.dto';
-import { ResendEmailVerifyResDto } from './dto/resend-email-verify.res.dto';
-import { ResetPasswordReqDto } from './dto/reset-password.req.dto';
-import { ResetPasswordResDto } from './dto/reset-password.res.dto';
-import { LoginReqDto } from './dto/users/login.req.dto';
-import { LoginResDto } from './dto/users/login.res.dto';
-import { RegisterReqDto } from './dto/users/register.req.dto';
-import { VerifyAccountResDto } from './dto/verify-account.req.dto';
-import { JwtForgotPasswordPayload } from './types/jwt-forgot-password-payload';
-import { JwtPayloadType } from './types/jwt-payload.type';
-import { JwtRefreshPayloadType } from './types/jwt-refresh-payload.type';
+import { AdminUserLoginReqDto } from '../dto/admin-users/admin-user-login.req.dto';
+import { AdminUserLoginResDto } from '../dto/admin-users/admin-user-login.res.dto';
+import { AdminUserRegisterReqDto } from '../dto/admin-users/admin-user-register.req.dto';
+import { ForgotPasswordReqDto } from '../dto/forgot-password.req.dto';
+import { ForgotPasswordResDto } from '../dto/forgot-password.res.dto';
+import { RefreshReqDto } from '../dto/refresh.req.dto';
+import { RefreshResDto } from '../dto/refresh.res.dto';
+import { RegisterResDto } from '../dto/register.res.dto';
+import { ResendEmailVerifyReqDto } from '../dto/resend-email-verify.req.dto';
+import { ResendEmailVerifyResDto } from '../dto/resend-email-verify.res.dto';
+import { ResetPasswordReqDto } from '../dto/reset-password.req.dto';
+import { ResetPasswordResDto } from '../dto/reset-password.res.dto';
+import { VerifyAccountResDto } from '../dto/verify-account.req.dto';
+import { JwtForgotPasswordPayload } from '../types/jwt-forgot-password-payload';
+import { JwtPayloadType } from '../types/jwt-payload.type';
+import { JwtRefreshPayloadType } from '../types/jwt-refresh-payload.type';
 
 type Token = Branded<
   {
@@ -68,13 +64,12 @@ type Token = Branded<
 >;
 
 @Injectable()
-export class AuthService {
-  private readonly logger = new Logger(AuthService.name);
+export class AdminAuthService {
+  private readonly logger = new Logger(AdminAuthService.name);
+
   constructor(
     private readonly configService: ConfigService<AllConfigType>,
     private readonly jwtService: JwtService,
-    @InjectRepository(UserEntity)
-    private readonly userRepository: Repository<UserEntity>,
     @InjectRepository(AdminUserEntity)
     private readonly adminUserRepository: Repository<AdminUserEntity>,
     @InjectQueue(QueueName.EMAIL)
@@ -83,16 +78,11 @@ export class AuthService {
     private readonly cacheManager: Cache,
   ) {}
 
-  //? ADMIN SECTION
-  async adminUserLogin(
-    dto: AdminUserLoginReqDto,
-  ): Promise<AdminUserLoginResDto> {
+  async login(dto: AdminUserLoginReqDto): Promise<AdminUserLoginResDto> {
     const { email, password } = dto;
-    console.log({ email });
     const user = await this.adminUserRepository.findOne({
       where: { email },
     });
-    console.log(user);
 
     const isPasswordValid =
       user && (await verifyPassword(password, user.password));
@@ -122,18 +112,13 @@ export class AuthService {
       hash,
     });
 
-    console.log(token);
-
     return plainToInstance(AdminUserLoginResDto, {
       userId: user.id,
       ...token,
     });
   }
 
-  async adminUserRegister(
-    dto: AdminUserRegisterReqDto,
-  ): Promise<RegisterResDto> {
-    // Check if the user already exists
+  async register(dto: AdminUserRegisterReqDto): Promise<RegisterResDto> {
     const isExistUser = await AdminUserEntity.exists({
       where: { email: dto.email },
     });
@@ -142,8 +127,7 @@ export class AuthService {
       throw new ValidationException(ErrorCode.E003);
     }
 
-    // Register user
-    const user = new AdminUserEntity({
+    const user = await this.adminUserRepository.save({
       email: dto.email,
       password: dto.password,
       roleId: dto.roleId,
@@ -151,9 +135,6 @@ export class AuthService {
       updatedBy: SYSTEM_USER_ID,
     });
 
-    await user.save();
-
-    // Send email verification
     const token = await this.createVerificationToken({ id: user.id });
     const tokenExpiresIn = this.configService.getOrThrow(
       'auth.confirmEmailExpires',
@@ -180,7 +161,7 @@ export class AuthService {
     });
   }
 
-  async adminVerifyAccount(token: string): Promise<VerifyAccountResDto> {
+  async verifyAccount(token: string): Promise<VerifyAccountResDto> {
     const { id } = this.verifyEmailToken(token);
 
     const user = await this.adminUserRepository.findOneBy({ id });
@@ -203,7 +184,7 @@ export class AuthService {
     });
   }
 
-  async adminResendVerifyEmail(
+  async resendVerifyEmail(
     dto: ResendEmailVerifyReqDto,
   ): Promise<ResendEmailVerifyResDto> {
     const user = await AdminUserEntity.findOne({
@@ -238,7 +219,7 @@ export class AuthService {
     });
   }
 
-  async adminRefreshToken(dto: RefreshReqDto): Promise<RefreshResDto> {
+  async refreshToken(dto: RefreshReqDto): Promise<RefreshResDto> {
     const { sessionId, hash } = this.verifyRefreshToken(dto.refreshToken);
     const session = await SessionEntity.findOneBy({ id: sessionId });
 
@@ -265,7 +246,7 @@ export class AuthService {
     });
   }
 
-  async adminForgotPassword(
+  async forgotPassword(
     dto: ForgotPasswordReqDto,
   ): Promise<ForgotPasswordResDto> {
     const admin = await this.adminUserRepository.findOneOrFail({
@@ -308,7 +289,7 @@ export class AuthService {
     });
   }
 
-  async adminResetPassword(
+  async resetPassword(
     token: string,
     dto: ResetPasswordReqDto,
   ): Promise<ResetPasswordResDto> {
@@ -336,261 +317,15 @@ export class AuthService {
     });
   }
 
-  //? USER SECTION
-  async signIn(dto: LoginReqDto): Promise<LoginResDto> {
-    const { email, password } = dto;
-    console.log({ email });
-    console.log(await this.userRepository.count());
-    const user = await this.userRepository.findOne({
-      where: { email },
-    });
-
-    const all = await this.userRepository.find({
-      select: ['id', 'email'],
-    });
-    console.log(all);
-
-    console.log(user);
-
-    const isPasswordValid =
-      user && (await verifyPassword(password, user.password));
-
-    if (!isPasswordValid) {
-      throw new UnauthorizedException();
-    }
-
-    const hash = crypto
-      .createHash('sha256')
-      .update(randomStringGenerator())
-      .digest('hex');
-
-    const session = new SessionEntity({
-      hash,
-      userId: user.id,
-      createdBy: SYSTEM_USER_ID,
-      updatedBy: SYSTEM_USER_ID,
-      userType: ESessionUserType.USER,
-    });
-    await session.save();
-
-    const token = await this.createToken({
-      id: user.id,
-      sessionId: session.id,
-      hash,
-    });
-
-    console.log(token);
-
-    return plainToInstance(LoginResDto, {
-      userId: user.id,
-      ...token,
-    });
+  async logout(userToken: JwtPayloadType): Promise<void> {
+    await this.cacheManager.store.set<boolean>(
+      createCacheKey(CacheKey.SESSION_BLACKLIST, userToken.sessionId),
+      true,
+      userToken.exp * 1000 - Date.now(),
+    );
+    await SessionEntity.delete(userToken.sessionId);
   }
 
-  async signUp(dto: RegisterReqDto): Promise<RegisterResDto> {
-    // Check if the user already exists
-    const isExistUser = await AdminUserEntity.exists({
-      where: { email: dto.email },
-    });
-
-    if (isExistUser) {
-      throw new ValidationException(ErrorCode.E003);
-    }
-
-    // Register user
-    const user = new UserEntity({
-      email: dto.email,
-      password: dto.password,
-      createdBy: SYSTEM_USER_ID,
-      updatedBy: SYSTEM_USER_ID,
-    });
-
-    await user.save();
-
-    // Send email verification
-    const token = await this.createVerificationToken({ id: user.id });
-    const tokenExpiresIn = this.configService.getOrThrow(
-      'auth.confirmEmailExpires',
-      {
-        infer: true,
-      },
-    );
-    await this.cacheManager.set(
-      createCacheKey(CacheKey.EMAIL_VERIFICATION, user.id),
-      token,
-      ms(tokenExpiresIn),
-    );
-    await this.emailQueue.add(
-      JobName.EMAIL_VERIFICATION,
-      {
-        email: dto.email,
-        token,
-      } as IVerifyEmailJob,
-      { attempts: 3, backoff: { type: 'exponential', delay: 60000 } },
-    );
-
-    return plainToInstance(RegisterResDto, {
-      userId: user.id,
-    });
-  }
-
-  async verifyAccount(token: string): Promise<VerifyAccountResDto> {
-    const { id } = this.verifyEmailToken(token);
-
-    const user = await this.userRepository.findOneBy({ id });
-
-    if (!user) {
-      throw new BadRequestException();
-    }
-
-    user.verifiedAt = new Date();
-    await user.save();
-
-    await this.cacheManager.del(
-      createCacheKey(CacheKey.EMAIL_VERIFICATION, id),
-    );
-
-    return plainToInstance(VerifyAccountResDto, {
-      verified: true,
-      message: 'Your account has been verified',
-      userId: user.id,
-    });
-  }
-
-  async resendVerifyEmail(
-    dto: ResendEmailVerifyReqDto,
-  ): Promise<ResendEmailVerifyResDto> {
-    const user = await UserEntity.findOne({
-      where: { email: dto.email },
-    });
-
-    if (user) {
-      const token = await this.createVerificationToken({ id: user.id });
-      const tokenExpiresIn = this.configService.getOrThrow(
-        'auth.confirmEmailExpires',
-        {
-          infer: true,
-        },
-      );
-      await this.cacheManager.set(
-        createCacheKey(CacheKey.EMAIL_VERIFICATION, user.id),
-        token,
-        ms(tokenExpiresIn),
-      );
-      await this.emailQueue.add(
-        JobName.EMAIL_VERIFICATION,
-        {
-          email: dto.email,
-          token,
-        } as IVerifyEmailJob,
-        { attempts: 3, backoff: { type: 'exponential', delay: 60000 } },
-      );
-    }
-
-    return plainToInstance(ResendEmailVerifyResDto, {
-      userId: user.id,
-    });
-  }
-
-  async refreshToken(dto: RefreshReqDto): Promise<RefreshResDto> {
-    const { sessionId, hash } = this.verifyRefreshToken(dto.refreshToken);
-    const session = await SessionEntity.findOneBy({ id: sessionId });
-
-    if (!session || session.hash !== hash) {
-      throw new UnauthorizedException();
-    }
-
-    const user = await this.userRepository.findOneOrFail({
-      where: { id: session.userId },
-      select: ['id'],
-    });
-
-    const newHash = crypto
-      .createHash('sha256')
-      .update(randomStringGenerator())
-      .digest('hex');
-
-    SessionEntity.update(session.id, { hash: newHash });
-
-    return await this.createToken({
-      id: user.id,
-      sessionId: session.id,
-      hash: newHash,
-    });
-  }
-
-  async forgotPassword(
-    dto: ForgotPasswordReqDto,
-  ): Promise<ForgotPasswordResDto> {
-    const user = await this.userRepository.findOneOrFail({
-      where: { email: dto.email },
-    });
-
-    if (!user) {
-      throw new ValidationException(ErrorCode.E004);
-    }
-
-    const token = await this.createForgotToken({ id: user.id });
-    const tokenExpiresIn = this.configService.getOrThrow('auth.forgotExpires', {
-      infer: true,
-    });
-
-    await this.cacheManager.set(
-      createCacheKey(CacheKey.FORGOT_PASSWORD, user.id),
-      token,
-      ms(tokenExpiresIn),
-    );
-
-    await this.emailQueue.add(
-      JobName.EMAIL_FORGOT_PASSWORD,
-      {
-        email: dto.email,
-        token,
-      } as IForgotPasswordEmailJob,
-      { attempts: 3, backoff: { type: 'exponential', delay: 60000 } },
-    );
-
-    const clientResetPasswordUrl = this.configService.getOrThrow(
-      'auth.clientResetPasswordUrl',
-      {
-        infer: true,
-      },
-    );
-
-    return plainToInstance(ForgotPasswordResDto, {
-      redirect: `${clientResetPasswordUrl}?token=${token}`,
-    });
-  }
-
-  async resetPassword(
-    token: string,
-    dto: ResetPasswordReqDto,
-  ): Promise<ResetPasswordResDto> {
-    const { id } = this.verifyForgotPasswordToken(token);
-
-    const user = await this.userRepository.findOneBy({ id });
-
-    if (!user) {
-      throw new BadRequestException();
-    }
-
-    await this.cacheManager.del(createCacheKey(CacheKey.FORGOT_PASSWORD, id));
-
-    if (dto.password !== dto.confirmPassword) {
-      throw new BadRequestException();
-    }
-
-    user.password = dto.password;
-
-    await user.save();
-
-    return plainToInstance(ResetPasswordResDto, {
-      success: true,
-      message: 'Reset password successfully. Please login to continue website',
-    });
-  }
-
-  //* UTILS FUNCTION
   async verifyAccessToken(token: string): Promise<JwtPayloadType> {
     let payload: JwtPayloadType;
     try {
@@ -611,15 +346,6 @@ export class AuthService {
     }
 
     return payload;
-  }
-
-  async logout(userToken: JwtPayloadType): Promise<void> {
-    await this.cacheManager.store.set<boolean>(
-      createCacheKey(CacheKey.SESSION_BLACKLIST, userToken.sessionId),
-      true,
-      userToken.exp * 1000 - Date.now(),
-    );
-    await SessionEntity.delete(userToken.sessionId);
   }
 
   private verifyRefreshToken(token: string): JwtRefreshPayloadType {
@@ -733,16 +459,5 @@ export class AuthService {
     } catch {
       throw new HttpException('URL không còn khả dụng', HttpStatus.GONE);
     }
-  }
-
-  async googleLogin(req) {
-    if (!req.user) {
-      return 'No user from google';
-    }
-
-    return {
-      message: 'User information from google',
-      user: req.user,
-    };
   }
 }

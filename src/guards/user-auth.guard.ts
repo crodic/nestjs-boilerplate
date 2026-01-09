@@ -8,13 +8,13 @@ import {
 import { Reflector } from '@nestjs/core';
 import { Request } from 'express';
 import { ClsService } from 'nestjs-cls';
-import { AdminAuthService } from './../api/auth/services/admin-auth.service';
+import { UserAuthService } from './../api/auth/services/user-auth.service';
 
 @Injectable()
-export class AuthGuard implements CanActivate {
+export class UserAuthGuard implements CanActivate {
   constructor(
     private reflector: Reflector,
-    private adminAuthService: AdminAuthService,
+    private userAuthService: UserAuthService,
     private cls: ClsService,
   ) {}
 
@@ -32,11 +32,6 @@ export class AuthGuard implements CanActivate {
     );
 
     const request = context.switchToHttp().getRequest();
-    const url = request.url;
-
-    if (url.startsWith('/nestlens') || url.startsWith('/__nestlens__')) {
-      return true;
-    }
 
     const accessToken = this.extractTokenFromHeader(request);
 
@@ -47,11 +42,11 @@ export class AuthGuard implements CanActivate {
       throw new UnauthorizedException();
     }
 
-    request['user'] =
-      await this.adminAuthService.verifyAccessToken(accessToken);
-    const userId = request.user?.id;
+    request['customer'] =
+      await this.userAuthService.verifyAccessToken(accessToken);
+    const customerId = request.customer?.id;
 
-    this.cls.set('userId', userId);
+    this.cls.set('customerId', customerId);
 
     return true;
   }

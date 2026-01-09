@@ -1,5 +1,5 @@
 import { Uuid } from '@/common/types/common.type';
-import { CurrentUser } from '@/decorators/current-user.decorator';
+import { CurrentUser } from '@/decorators/current-admin.decorator';
 import { ApiAuth, ApiAuthWithPaginate } from '@/decorators/http.decorators';
 import { CheckPolicies } from '@/decorators/policies.decorator';
 import { PoliciesGuard } from '@/guards/policies.guard';

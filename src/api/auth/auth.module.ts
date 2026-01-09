@@ -10,8 +10,10 @@ import { NESTLENS_MAILER_SERVICE } from 'nestlens';
 import { AdminUserEntity } from '../admin-user/entities/admin-user.entity';
 import { UserEntity } from '../user/entities/user.entity';
 import { UserModule } from '../user/user.module';
-import { AuthController } from './auth.controller';
-import { AuthService } from './auth.service';
+import { AdminAuthenticationController } from './controllers/admin-auth.controller';
+import { UserAuthenticationController } from './controllers/user-auth.controller';
+import { AdminAuthService } from './services/admin-auth.service';
+import { UserAuthService } from './services/user-auth.service';
 
 @Module({
   imports: [
@@ -29,12 +31,13 @@ import { AuthService } from './auth.service';
     }),
     BullBoardModule.forFeature({
       name: QueueName.EMAIL,
-      adapter: BullMQAdapter, // hoặc BullAdapter nếu dùng Bull
+      adapter: BullMQAdapter,
     }),
   ],
-  controllers: [AuthController],
+  controllers: [AdminAuthenticationController, UserAuthenticationController],
   providers: [
-    AuthService,
+    AdminAuthService,
+    UserAuthService,
     {
       provide: NESTLENS_MAILER_SERVICE,
       useExisting: MailerService,
