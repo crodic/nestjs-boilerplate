@@ -40,9 +40,9 @@ import { randomStringGenerator } from '@nestjs/common/utils/random-string-genera
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
-import assert from 'assert';
 import { Queue } from 'bullmq';
 import { plainToInstance } from 'class-transformer';
+import { assert } from 'console';
 import crypto from 'crypto';
 import ms from 'ms';
 import { Repository } from 'typeorm';

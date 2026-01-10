@@ -1,6 +1,7 @@
 import { Uuid } from '@/common/types/common.type';
 import { ApiAuth, ApiAuthWithPaginate } from '@/decorators/http.decorators';
 import { CheckPolicies } from '@/decorators/policies.decorator';
+import { AuthGuard } from '@/guards/auth.guard';
 import { PoliciesGuard } from '@/guards/policies.guard';
 import { AppAbility } from '@/libs/casl/ability.factory';
 import { AppActions, AppSubjects } from '@/utils/permissions.constant';
@@ -23,7 +24,6 @@ import {
   Paginated,
   PaginateQuery,
 } from 'nestjs-paginate';
-import { UserAuthGuard } from './../../guards/user-auth.guard';
 import { CreateUserReqDto } from './dto/create-user.req.dto';
 import { UpdateUserReqDto } from './dto/update-user.req.dto';
 import { UserResDto } from './dto/user.res.dto';
@@ -34,7 +34,7 @@ import { UserService } from './user.service';
   path: 'users',
   version: '1',
 })
-@UseGuards(UserAuthGuard, PoliciesGuard)
+@UseGuards(AuthGuard, PoliciesGuard)
 export class UserController {
   constructor(private readonly userService: UserService) {}
 

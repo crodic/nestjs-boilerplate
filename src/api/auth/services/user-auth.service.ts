@@ -327,7 +327,6 @@ export class UserAuthService {
     });
   }
 
-  //* UTILS FUNCTION
   async verifyAccessToken(token: string): Promise<JwtPayloadType> {
     let payload: JwtPayloadType;
     try {

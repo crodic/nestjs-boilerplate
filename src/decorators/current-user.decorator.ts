@@ -4,7 +4,7 @@ import { Request } from 'express';
 export const CurrentUser = createParamDecorator(
   (data: string, ctx: ExecutionContext) => {
     const request = ctx.switchToHttp().getRequest<Request>();
-    const user = request['user'];
+    const user = request['customer'];
 
     return data ? user?.[data] : user;
   },
@@ -13,7 +13,7 @@ export const CurrentUser = createParamDecorator(
 export const CurrentAdmin = createParamDecorator(
   (data: string, ctx: ExecutionContext) => {
     const request = ctx.switchToHttp().getRequest<Request>();
-    const user = request['admin_user'];
+    const user = request['user'];
 
     return data ? user?.[data] : user;
   },
