@@ -13,6 +13,8 @@ import { AdminAuthenticationController } from './controllers/admin-auth.controll
 import { UserAuthenticationController } from './controllers/user-auth.controller';
 import { AdminAuthService } from './services/admin-auth.service';
 import { UserAuthService } from './services/user-auth.service';
+import { AdminJwtStrategy } from './strategy/admin.stategy';
+import { UserJwtStrategy } from './strategy/user.stategy';
 
 @Module({
   imports: [
@@ -40,6 +42,8 @@ import { UserAuthService } from './services/user-auth.service';
       provide: NESTLENS_MAILER_SERVICE,
       useExisting: MailerService,
     },
+    AdminJwtStrategy,
+    UserJwtStrategy,
   ],
   exports: [AdminAuthService, UserAuthService],
 })

@@ -1,8 +1,8 @@
 import { Uuid } from '@/common/types/common.type';
 import { ApiAuth, ApiAuthWithPaginate } from '@/decorators/http.decorators';
 import { CheckPolicies } from '@/decorators/policies.decorator';
-import { AuthGuard } from '@/guards/auth.guard';
 import { PoliciesGuard } from '@/guards/policies.guard';
+import { AdminAuthGuard } from '@/guards/v2/admin-auth.guard';
 import { AppAbility } from '@/libs/casl/ability.factory';
 import { AppActions, AppSubjects } from '@/utils/permissions.constant';
 import {
@@ -34,7 +34,7 @@ import { UserService } from './user.service';
   path: 'users',
   version: '1',
 })
-@UseGuards(AuthGuard, PoliciesGuard)
+@UseGuards(AdminAuthGuard, PoliciesGuard)
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
