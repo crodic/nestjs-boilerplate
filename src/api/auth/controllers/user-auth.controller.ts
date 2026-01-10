@@ -1,6 +1,11 @@
+import { ChangePasswordReqDto } from '@/api/user/dto/change-password.req.dto';
+import { ChangePasswordResDto } from '@/api/user/dto/change-password.res.dto';
+import { UserResDto } from '@/api/user/dto/user.res.dto';
+import { Uuid } from '@/common/types/common.type';
 import { CurrentUser } from '@/decorators/current-user.decorator';
 import { ApiAuth, ApiPublic } from '@/decorators/http.decorators';
 import { GoogleOAuthGuard } from '@/guards/google-oauth.guard';
+import { UserAuthGuard } from '@/guards/user-auth.guard';
 import {
   Body,
   Controller,
@@ -30,10 +35,10 @@ import { JwtPayloadType } from '../types/jwt-payload.type';
   path: 'user/auth',
   version: '1',
 })
+@UseGuards(UserAuthGuard)
 export class UserAuthenticationController {
   constructor(private readonly userAuthService: UserAuthService) {}
 
-  //? USER SECTION
   @ApiPublic({
     type: LoginReqDto,
     summary: '[User] Sign-in',
@@ -114,5 +119,27 @@ export class UserAuthenticationController {
   @UseGuards(GoogleOAuthGuard)
   googleAuthRedirect(@Request() req) {
     return this.userAuthService.googleLogin(req);
+  }
+
+  @ApiAuth({
+    type: ChangePasswordResDto,
+    summary: 'Change password',
+    errorResponses: [400, 401, 403, 404, 500],
+  })
+  @Post('me/change-password')
+  async changePassword(
+    @CurrentUser('id') userId: Uuid,
+    @Body() reqDto: ChangePasswordReqDto,
+  ): Promise<ChangePasswordResDto> {
+    return this.userAuthService.changePassword(userId, reqDto);
+  }
+
+  @ApiAuth({
+    type: UserResDto,
+    summary: 'Get current user',
+  })
+  @Get('me')
+  async getCurrentUser(@CurrentUser('id') userId: Uuid): Promise<UserResDto> {
+    return await this.userAuthService.me(userId);
   }
 }

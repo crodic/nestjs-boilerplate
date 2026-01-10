@@ -1,9 +1,13 @@
+import { ChangePasswordReqDto } from '@/api/user/dto/change-password.req.dto';
+import { ChangePasswordResDto } from '@/api/user/dto/change-password.res.dto';
+import { UserResDto } from '@/api/user/dto/user.res.dto';
 import { UserEntity } from '@/api/user/entities/user.entity';
 import {
   IEmailJob,
   IForgotPasswordEmailJob,
   IVerifyEmailJob,
 } from '@/common/interfaces/job.interface';
+import { Uuid } from '@/common/types/common.type';
 import { Branded } from '@/common/types/types';
 import { AllConfigType } from '@/config/config.type';
 import { SYSTEM_USER_ID } from '@/constants/app.constant';
@@ -19,6 +23,7 @@ import { InjectQueue } from '@nestjs/bullmq';
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 import {
   BadRequestException,
+  ForbiddenException,
   HttpException,
   HttpStatus,
   Inject,
@@ -32,6 +37,7 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Queue } from 'bullmq';
 import { plainToInstance } from 'class-transformer';
+import { assert } from 'console';
 import crypto from 'crypto';
 import ms from 'ms';
 import { Repository } from 'typeorm';
@@ -480,5 +486,39 @@ export class UserAuthService {
       message: 'User information from google',
       user: req.user,
     };
+  }
+
+  async me(id: Uuid): Promise<UserResDto> {
+    assert(id, 'id is required');
+    const user = await this.userRepository.findOneBy({ id });
+
+    if (!user) {
+      throw new ForbiddenException('Forbidden');
+    }
+
+    return user.toDto(UserResDto);
+  }
+
+  async changePassword(
+    id: Uuid,
+    dto: ChangePasswordReqDto,
+  ): Promise<ChangePasswordResDto> {
+    const user = await this.userRepository.findOneByOrFail({ id });
+    const isPasswordValid = await verifyPassword(dto.password, user.password);
+    if (!isPasswordValid) {
+      throw new ValidationException(ErrorCode.E002);
+    }
+    if (dto.newPassword !== dto.confirmNewPassword) {
+      throw new ValidationException(ErrorCode.E003);
+    }
+    user.password = dto.newPassword;
+    user.updatedBy = id;
+
+    await this.userRepository.save(user);
+
+    return plainToInstance(ChangePasswordResDto, {
+      message: 'Change password successfully',
+      user: user.toDto(UserResDto),
+    });
   }
 }

@@ -9,7 +9,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { NESTLENS_MAILER_SERVICE } from 'nestlens';
 import { AdminUserEntity } from '../admin-user/entities/admin-user.entity';
 import { UserEntity } from '../user/entities/user.entity';
-import { UserModule } from '../user/user.module';
 import { AdminAuthenticationController } from './controllers/admin-auth.controller';
 import { UserAuthenticationController } from './controllers/user-auth.controller';
 import { AdminAuthService } from './services/admin-auth.service';
@@ -17,7 +16,6 @@ import { UserAuthService } from './services/user-auth.service';
 
 @Module({
   imports: [
-    UserModule,
     TypeOrmModule.forFeature([UserEntity, AdminUserEntity]),
     JwtModule.register({}),
     BullModule.registerQueue({
@@ -43,5 +41,6 @@ import { UserAuthService } from './services/user-auth.service';
       useExisting: MailerService,
     },
   ],
+  exports: [AdminAuthService, UserAuthService],
 })
 export class AuthModule {}

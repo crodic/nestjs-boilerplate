@@ -1,3 +1,8 @@
+import { AVATAR_PATH } from '@/api/admin-user/configs/multer.config';
+import { AdminUserResDto } from '@/api/admin-user/dto/admin-user.res.dto';
+import { ChangePasswordReqDto } from '@/api/admin-user/dto/change-password.req.dto';
+import { ChangePasswordResDto } from '@/api/admin-user/dto/change-password.res.dto';
+import { UpdateMeReqDto } from '@/api/admin-user/dto/update-me.req.dto';
 import { AdminUserEntity } from '@/api/admin-user/entities/admin-user.entity';
 import { RoleEntity } from '@/api/role/entities/role.entity';
 import {
@@ -5,6 +10,7 @@ import {
   IForgotPasswordEmailJob,
   IVerifyEmailJob,
 } from '@/common/interfaces/job.interface';
+import { Uuid } from '@/common/types/common.type';
 import { Branded } from '@/common/types/types';
 import { AllConfigType } from '@/config/config.type';
 import { SYSTEM_USER_ID } from '@/constants/app.constant';
@@ -15,6 +21,7 @@ import { JobName, QueueName } from '@/constants/job.constant';
 import { ValidationException } from '@/exceptions/validation.exception';
 import { SessionEntity } from '@/shared/entities/session.entity';
 import { createCacheKey } from '@/utils/cache.util';
+import { deleteFile } from '@/utils/file';
 import { verifyPassword } from '@/utils/password.util';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
@@ -26,12 +33,14 @@ import {
   Inject,
   Injectable,
   Logger,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { randomStringGenerator } from '@nestjs/common/utils/random-string-generator.util';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
+import assert from 'assert';
 import { Queue } from 'bullmq';
 import { plainToInstance } from 'class-transformer';
 import crypto from 'crypto';
@@ -317,6 +326,17 @@ export class AdminAuthService {
     });
   }
 
+  async me(id: Uuid): Promise<AdminUserResDto> {
+    assert(id, 'id is required');
+    const user = await this.adminUserRepository.findOneBy({ id });
+
+    if (!user) {
+      throw new ForbiddenException('Forbidden');
+    }
+
+    return user.toDto(AdminUserResDto);
+  }
+
   async logout(userToken: JwtPayloadType): Promise<void> {
     await this.cacheManager.store.set<boolean>(
       createCacheKey(CacheKey.SESSION_BLACKLIST, userToken.sessionId),
@@ -459,5 +479,60 @@ export class AdminAuthService {
     } catch {
       throw new HttpException('URL không còn khả dụng', HttpStatus.GONE);
     }
+  }
+
+  async updateMe(
+    id: Uuid,
+    dto: UpdateMeReqDto,
+    file: Express.Multer.File,
+  ): Promise<{ message: string }> {
+    const user = await this.adminUserRepository.findOneBy({ id });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    delete user.password;
+
+    if (dto.removeAvatar || file) {
+      await deleteFile(user.image);
+      user.image = null;
+    }
+
+    Object.assign(user, {
+      ...dto,
+      updatedBy: id,
+      ...(file && { image: AVATAR_PATH + '/' + file.filename }),
+    });
+
+    await this.adminUserRepository.save(user);
+
+    return {
+      message: 'success',
+    };
+  }
+
+  async changePassword(
+    id: Uuid,
+    dto: ChangePasswordReqDto,
+  ): Promise<ChangePasswordResDto> {
+    const user = await this.adminUserRepository.findOneByOrFail({ id });
+    const isPasswordValid = await verifyPassword(dto.password, user.password);
+    if (!isPasswordValid) {
+      throw new ValidationException(ErrorCode.V003);
+    }
+
+    if (dto.newPassword !== dto.confirmNewPassword) {
+      throw new ValidationException(ErrorCode.V003);
+    }
+
+    user.password = dto.newPassword;
+    user.updatedBy = id;
+
+    await this.adminUserRepository.save(user);
+
+    return plainToInstance(ChangePasswordResDto, {
+      message: 'Change password successfully',
+      user: user.toDto(AdminUserResDto),
+    });
   }
 }

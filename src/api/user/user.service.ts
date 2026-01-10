@@ -2,8 +2,7 @@ import { Uuid } from '@/common/types/common.type';
 import { SYSTEM_USER_ID } from '@/constants/app.constant';
 import { ErrorCode } from '@/constants/error-code.constant';
 import { ValidationException } from '@/exceptions/validation.exception';
-import { verifyPassword } from '@/utils/password.util';
-import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import assert from 'assert';
 import { plainToInstance } from 'class-transformer';
@@ -15,8 +14,6 @@ import {
   PaginateQuery,
 } from 'nestjs-paginate';
 import { Repository } from 'typeorm';
-import { ChangePasswordReqDto } from './dto/change-password.req.dto';
-import { ChangePasswordResDto } from './dto/change-password.res.dto';
 import { CreateUserReqDto } from './dto/create-user.req.dto';
 import { UpdateUserReqDto } from './dto/update-user.req.dto';
 import { UserResDto } from './dto/user.res.dto';
@@ -90,17 +87,6 @@ export class UserService {
     return plainToInstance(UserResDto, savedUser);
   }
 
-  async me(id: Uuid): Promise<UserResDto> {
-    assert(id, 'id is required');
-    const user = await this.userRepository.findOneBy({ id });
-
-    if (!user) {
-      throw new ForbiddenException('Forbidden');
-    }
-
-    return user.toDto(UserResDto);
-  }
-
   async findOne(id: Uuid): Promise<UserResDto> {
     assert(id, 'id is required');
     const user = await this.userRepository.findOneByOrFail({ id });
@@ -121,28 +107,5 @@ export class UserService {
   async remove(id: Uuid) {
     await this.userRepository.findOneByOrFail({ id });
     await this.userRepository.softDelete(id);
-  }
-
-  async changePassword(
-    id: Uuid,
-    dto: ChangePasswordReqDto,
-  ): Promise<ChangePasswordResDto> {
-    const user = await this.userRepository.findOneByOrFail({ id });
-    const isPasswordValid = await verifyPassword(dto.password, user.password);
-    if (!isPasswordValid) {
-      throw new ValidationException(ErrorCode.E002);
-    }
-    if (dto.newPassword !== dto.confirmNewPassword) {
-      throw new ValidationException(ErrorCode.E003);
-    }
-    user.password = dto.newPassword;
-    user.updatedBy = id;
-
-    await this.userRepository.save(user);
-
-    return plainToInstance(ChangePasswordResDto, {
-      message: 'Change password successfully',
-      user: user.toDto(UserResDto),
-    });
   }
 }

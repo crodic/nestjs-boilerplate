@@ -1,6 +1,29 @@
-import { ApiPublic } from '@/decorators/http.decorators';
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
-import { ApiQuery, ApiTags } from '@nestjs/swagger';
+import { avatarUploadOption } from '@/api/admin-user/configs/multer.config';
+import { AdminUserResDto } from '@/api/admin-user/dto/admin-user.res.dto';
+import { ChangePasswordReqDto } from '@/api/admin-user/dto/change-password.req.dto';
+import { ChangePasswordResDto } from '@/api/admin-user/dto/change-password.res.dto';
+import { UpdateMeReqDto } from '@/api/admin-user/dto/update-me.req.dto';
+import { Uuid } from '@/common/types/common.type';
+import { CurrentAdmin, CurrentUser } from '@/decorators/current-user.decorator';
+import { ApiAuth, ApiPublic } from '@/decorators/http.decorators';
+import { AuthGuard } from '@/guards/auth.guard';
+import {
+  Body,
+  Controller,
+  FileTypeValidator,
+  Get,
+  HttpStatus,
+  MaxFileSizeValidator,
+  ParseFilePipe,
+  Post,
+  Put,
+  Query,
+  UploadedFile,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiConsumes, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { AdminUserLoginReqDto } from '../dto/admin-users/admin-user-login.req.dto';
 import { AdminUserLoginResDto } from '../dto/admin-users/admin-user-login.res.dto';
 import { AdminUserRegisterReqDto } from '../dto/admin-users/admin-user-register.req.dto';
@@ -19,12 +42,13 @@ import { AdminAuthService } from '../services/admin-auth.service';
   path: 'auth',
   version: '1',
 })
+@UseGuards(AuthGuard)
 export class AdminAuthenticationController {
   constructor(private readonly adminAuthService: AdminAuthService) {}
 
   @ApiPublic({
     type: AdminUserLoginReqDto,
-    summary: '[Admin] Login',
+    summary: 'Admin Login API',
   })
   @Post('login')
   async login(
@@ -35,7 +59,7 @@ export class AdminAuthenticationController {
 
   @ApiPublic({
     type: AdminUserRegisterReqDto,
-    summary: '[Admin] Register',
+    summary: 'Admin Register API',
   })
   @Post('register')
   async register(
@@ -90,5 +114,54 @@ export class AdminAuthenticationController {
     @Body() dto: ResetPasswordReqDto,
   ) {
     return this.adminAuthService.resetPassword(token, dto);
+  }
+
+  @Get('me')
+  @ApiAuth({
+    type: AdminUserResDto,
+    summary: 'Get current user',
+  })
+  async getCurrentUser(
+    @CurrentAdmin('id') userId: Uuid,
+  ): Promise<AdminUserResDto> {
+    return await this.adminAuthService.me(userId);
+  }
+
+  @Put('me')
+  @ApiConsumes('multipart/form-data')
+  @ApiAuth({
+    type: AdminUserResDto,
+    summary: 'Update current user',
+  })
+  @UseInterceptors(FileInterceptor('image', avatarUploadOption))
+  async updateCurrentUser(
+    @CurrentAdmin('id') userId: Uuid,
+    @Body() reqDto: UpdateMeReqDto,
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 5 * 1024 * 1024 }),
+          new FileTypeValidator({ fileType: /(jpeg|png|jpg)$/ }),
+        ],
+        fileIsRequired: false,
+        errorHttpStatusCode: HttpStatus.BAD_REQUEST,
+      }),
+    )
+    image?: Express.Multer.File,
+  ): Promise<{ message: string }> {
+    return await this.adminAuthService.updateMe(userId, reqDto, image);
+  }
+
+  @ApiAuth({
+    type: ChangePasswordResDto,
+    summary: 'Change password',
+    errorResponses: [400, 401, 403, 404, 500],
+  })
+  @Post('me/change-password')
+  async changePassword(
+    @CurrentUser('id') userId: Uuid,
+    @Body() reqDto: ChangePasswordReqDto,
+  ): Promise<ChangePasswordResDto> {
+    return this.adminAuthService.changePassword(userId, reqDto);
   }
 }

@@ -1,5 +1,4 @@
 import { Uuid } from '@/common/types/common.type';
-import { CurrentUser } from '@/decorators/current-admin.decorator';
 import { ApiAuth, ApiAuthWithPaginate } from '@/decorators/http.decorators';
 import { CheckPolicies } from '@/decorators/policies.decorator';
 import { PoliciesGuard } from '@/guards/policies.guard';
@@ -24,8 +23,7 @@ import {
   Paginated,
   PaginateQuery,
 } from 'nestjs-paginate';
-import { ChangePasswordReqDto } from './dto/change-password.req.dto';
-import { ChangePasswordResDto } from './dto/change-password.res.dto';
+import { UserAuthGuard } from './../../guards/user-auth.guard';
 import { CreateUserReqDto } from './dto/create-user.req.dto';
 import { UpdateUserReqDto } from './dto/update-user.req.dto';
 import { UserResDto } from './dto/user.res.dto';
@@ -36,7 +34,7 @@ import { UserService } from './user.service';
   path: 'users',
   version: '1',
 })
-@UseGuards(PoliciesGuard)
+@UseGuards(UserAuthGuard, PoliciesGuard)
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
@@ -61,15 +59,6 @@ export class UserController {
   )
   findAll(@Paginate() query: PaginateQuery): Promise<Paginated<UserResDto>> {
     return this.userService.findAllUser(query);
-  }
-
-  @ApiAuth({
-    type: UserResDto,
-    summary: 'Get current user',
-  })
-  @Get('me')
-  async getCurrentUser(@CurrentUser('id') userId: Uuid): Promise<UserResDto> {
-    return await this.userService.me(userId);
   }
 
   @Post()
@@ -121,18 +110,5 @@ export class UserController {
   )
   removeUser(@Param('id', ParseUUIDPipe) id: Uuid) {
     return this.userService.remove(id);
-  }
-
-  @ApiAuth({
-    type: ChangePasswordResDto,
-    summary: 'Change password',
-    errorResponses: [400, 401, 403, 404, 500],
-  })
-  @Post('me/change-password')
-  async changePassword(
-    @CurrentUser('id') userId: Uuid,
-    @Body() reqDto: ChangePasswordReqDto,
-  ): Promise<ChangePasswordResDto> {
-    return this.userService.changePassword(userId, reqDto);
   }
 }
