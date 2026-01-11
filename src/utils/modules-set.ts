@@ -40,6 +40,7 @@ function generateModulesSet() {
   ];
   let customModules: ModuleMetadata['imports'] = [];
 
+  // Database Module
   const dbModule = TypeOrmModule.forRootAsync({
     useClass: TypeOrmConfigService,
     dataSourceFactory: async (options: DataSourceOptions) => {
@@ -51,6 +52,7 @@ function generateModulesSet() {
     },
   });
 
+  // Background Jobs Module
   const bullModule = BullModule.forRootAsync({
     imports: [ConfigModule],
     useFactory: (configService: ConfigService<AllConfigType>) => {
@@ -72,11 +74,13 @@ function generateModulesSet() {
     inject: [ConfigService],
   });
 
+  // Background Jobs Dashboard
   const bullBoardModule = BullBoardModule.forRoot({
     route: '/queues',
-    adapter: ExpressAdapter, // Or FastifyAdapter from `@bull-board/fastify`
+    adapter: ExpressAdapter,
   });
 
+  // Localization Module
   const i18nModule = I18nModule.forRootAsync({
     resolvers: [
       { use: QueryResolver, options: ['lang'] },
@@ -105,12 +109,14 @@ function generateModulesSet() {
     inject: [ConfigService],
   });
 
+  // Logger Module
   const loggerModule = LoggerModule.forRootAsync({
     imports: [ConfigModule],
     inject: [ConfigService],
     useFactory: loggerFactory,
   });
 
+  // Cache Module
   const cacheModule = CacheModule.registerAsync({
     imports: [ConfigModule],
     useFactory: async (configService: ConfigService<AllConfigType>) => {
