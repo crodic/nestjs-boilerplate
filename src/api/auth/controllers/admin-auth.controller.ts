@@ -6,7 +6,7 @@ import { UpdateMeReqDto } from '@/api/admin-user/dto/update-me.req.dto';
 import { Uuid } from '@/common/types/common.type';
 import { CurrentAdmin, CurrentUser } from '@/decorators/current-user.decorator';
 import { ApiAuth, ApiPublic } from '@/decorators/http.decorators';
-import { AuthGuard } from '@/guards/auth.guard';
+import { AdminAuthGuard } from '@/guards/admin-auth.guard';
 import {
   Body,
   Controller,
@@ -42,7 +42,7 @@ import { AdminAuthService } from '../services/admin-auth.service';
   path: 'auth',
   version: '1',
 })
-@UseGuards(AuthGuard)
+@UseGuards(AdminAuthGuard)
 export class AdminAuthenticationController {
   constructor(private readonly adminAuthService: AdminAuthService) {}
 

@@ -107,14 +107,15 @@ export default registerAs<AuthConfig>('auth', () => {
     portalResetPasswordUrl: process.env.AUTH_PORTAL_RESET_PASSWORD_URL,
 
     // GUARD USER
-    userSecret: process.env.AUTH_JWT_SECRET,
-    userExpires: process.env.AUTH_JWT_TOKEN_EXPIRES_IN,
-    userRefreshSecret: process.env.AUTH_REFRESH_SECRET,
-    userRefreshExpires: process.env.AUTH_REFRESH_TOKEN_EXPIRES_IN,
-    userForgotSecret: process.env.AUTH_FORGOT_SECRET,
-    userForgotExpires: process.env.AUTH_FORGOT_TOKEN_EXPIRES_IN,
-    userConfirmEmailSecret: process.env.AUTH_CONFIRM_EMAIL_SECRET,
-    userConfirmEmailExpires: process.env.AUTH_CONFIRM_EMAIL_TOKEN_EXPIRES_IN,
-    clientResetPasswordUrl: process.env.AUTH_CLIENT_RESET_PASSWORD_URL,
+    userSecret: process.env.USER_AUTH_JWT_SECRET,
+    userExpires: process.env.USER_AUTH_JWT_TOKEN_EXPIRES_IN,
+    userRefreshSecret: process.env.USER_AUTH_REFRESH_SECRET,
+    userRefreshExpires: process.env.USER_AUTH_REFRESH_TOKEN_EXPIRES_IN,
+    userForgotSecret: process.env.USER_AUTH_FORGOT_SECRET,
+    userForgotExpires: process.env.USER_AUTH_FORGOT_TOKEN_EXPIRES_IN,
+    userConfirmEmailSecret: process.env.USER_AUTH_CONFIRM_EMAIL_SECRET,
+    userConfirmEmailExpires:
+      process.env.USER_AUTH_CONFIRM_EMAIL_TOKEN_EXPIRES_IN,
+    clientResetPasswordUrl: process.env.USER_AUTH_CLIENT_RESET_PASSWORD_URL,
   };
 });

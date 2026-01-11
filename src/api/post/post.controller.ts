@@ -5,7 +5,8 @@ import {
   ApiAuthWithPaginate,
   SimpleApiPublic,
 } from '@/decorators/http.decorators';
-import { AuthGuard } from '@/guards/auth.guard';
+import { AdminAuthGuard } from '@/guards/admin-auth.guard';
+import { PoliciesGuard } from '@/guards/policies.guard';
 import {
   Body,
   Controller,
@@ -37,7 +38,7 @@ import { PostService } from './post.service';
   path: 'posts',
   version: '1',
 })
-@UseGuards(AuthGuard)
+@UseGuards(AdminAuthGuard, PoliciesGuard)
 export class PostController {
   constructor(private readonly postService: PostService) {}
 

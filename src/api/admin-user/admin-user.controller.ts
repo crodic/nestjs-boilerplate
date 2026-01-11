@@ -1,7 +1,7 @@
 import { Uuid } from '@/common/types/common.type';
 import { ApiAuth, ApiAuthWithPaginate } from '@/decorators/http.decorators';
 import { CheckPolicies } from '@/decorators/policies.decorator';
-import { AuthGuard } from '@/guards/auth.guard';
+import { AdminAuthGuard } from '@/guards/admin-auth.guard';
 import { PoliciesGuard } from '@/guards/policies.guard';
 import { AppAbility } from '@/libs/casl/ability.factory';
 import { AppActions, AppSubjects } from '@/utils/permissions.constant';
@@ -34,7 +34,7 @@ import { UpdateAdminUserReqDto } from './dto/update-admin-user.req.dto';
   path: 'admin-users',
   version: '1',
 })
-@UseGuards(AuthGuard, PoliciesGuard)
+@UseGuards(AdminAuthGuard, PoliciesGuard)
 export class AdminUserController {
   constructor(private readonly adminUserService: AdminUserService) {}
 

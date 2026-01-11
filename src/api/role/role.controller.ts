@@ -4,6 +4,7 @@ import {
   CheckPolicies,
   CheckPoliciesLogic,
 } from '@/decorators/policies.decorator';
+import { AdminAuthGuard } from '@/guards/admin-auth.guard';
 import { PoliciesGuard } from '@/guards/policies.guard';
 import { AppAbility } from '@/libs/casl/ability.factory';
 import { AppActions, AppSubjects } from '@/utils/permissions.constant';
@@ -32,7 +33,7 @@ import { RoleService } from './role.service';
 
 @ApiTags('Roles')
 @Controller({ path: 'roles', version: '1' })
-@UseGuards(PoliciesGuard)
+@UseGuards(AdminAuthGuard, PoliciesGuard)
 export class RoleController {
   constructor(private readonly roleService: RoleService) {}
 

@@ -1,11 +1,13 @@
 import { ApiPublic } from '@/decorators/http.decorators';
 import { Public } from '@/decorators/public.decorator';
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { AdminAuthGuard } from '@/guards/admin-auth.guard';
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { ApiBody } from '@nestjs/swagger';
 import { CreateSystemSetupReqDto } from './dto/create-system-setup.req.dto';
 import { HomeService } from './home.service';
 
 @Controller('/')
+@UseGuards(AdminAuthGuard)
 export class HomeController {
   constructor(private readonly homeService: HomeService) {}
 

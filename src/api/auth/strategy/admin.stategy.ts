@@ -11,7 +11,7 @@ export class AdminJwtStrategy extends PassportStrategy(Strategy, 'admin-jwt') {
   constructor(
     private readonly configService: ConfigService<AllConfigType>,
     @Inject(CACHE_MANAGER)
-    private cache: Cache,
+    private readonly cache: Cache,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),

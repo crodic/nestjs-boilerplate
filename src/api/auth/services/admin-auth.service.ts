@@ -337,6 +337,61 @@ export class AdminAuthService {
     return user.toDto(AdminUserResDto);
   }
 
+  async updateMe(
+    id: Uuid,
+    dto: UpdateMeReqDto,
+    file: Express.Multer.File,
+  ): Promise<{ message: string }> {
+    const user = await this.adminUserRepository.findOneBy({ id });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    delete user.password;
+
+    if (dto.removeAvatar || file) {
+      await deleteFile(user.image);
+      user.image = null;
+    }
+
+    Object.assign(user, {
+      ...dto,
+      updatedBy: id,
+      ...(file && { image: AVATAR_PATH + '/' + file.filename }),
+    });
+
+    await this.adminUserRepository.save(user);
+
+    return {
+      message: 'success',
+    };
+  }
+
+  async changePassword(
+    id: Uuid,
+    dto: ChangePasswordReqDto,
+  ): Promise<ChangePasswordResDto> {
+    const user = await this.adminUserRepository.findOneByOrFail({ id });
+    const isPasswordValid = await verifyPassword(dto.password, user.password);
+    if (!isPasswordValid) {
+      throw new ValidationException(ErrorCode.V003);
+    }
+
+    if (dto.newPassword !== dto.confirmNewPassword) {
+      throw new ValidationException(ErrorCode.V003);
+    }
+
+    user.password = dto.newPassword;
+    user.updatedBy = id;
+
+    await this.adminUserRepository.save(user);
+
+    return plainToInstance(ChangePasswordResDto, {
+      message: 'Change password successfully',
+      user: user.toDto(AdminUserResDto),
+    });
+  }
+
   async logout(userToken: JwtPayloadType): Promise<void> {
     await this.cacheManager.store.set<boolean>(
       createCacheKey(CacheKey.SESSION_BLACKLIST, userToken.sessionId),
@@ -479,60 +534,5 @@ export class AdminAuthService {
     } catch {
       throw new HttpException('URL không còn khả dụng', HttpStatus.GONE);
     }
-  }
-
-  async updateMe(
-    id: Uuid,
-    dto: UpdateMeReqDto,
-    file: Express.Multer.File,
-  ): Promise<{ message: string }> {
-    const user = await this.adminUserRepository.findOneBy({ id });
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-
-    delete user.password;
-
-    if (dto.removeAvatar || file) {
-      await deleteFile(user.image);
-      user.image = null;
-    }
-
-    Object.assign(user, {
-      ...dto,
-      updatedBy: id,
-      ...(file && { image: AVATAR_PATH + '/' + file.filename }),
-    });
-
-    await this.adminUserRepository.save(user);
-
-    return {
-      message: 'success',
-    };
-  }
-
-  async changePassword(
-    id: Uuid,
-    dto: ChangePasswordReqDto,
-  ): Promise<ChangePasswordResDto> {
-    const user = await this.adminUserRepository.findOneByOrFail({ id });
-    const isPasswordValid = await verifyPassword(dto.password, user.password);
-    if (!isPasswordValid) {
-      throw new ValidationException(ErrorCode.V003);
-    }
-
-    if (dto.newPassword !== dto.confirmNewPassword) {
-      throw new ValidationException(ErrorCode.V003);
-    }
-
-    user.password = dto.newPassword;
-    user.updatedBy = id;
-
-    await this.adminUserRepository.save(user);
-
-    return plainToInstance(ChangePasswordResDto, {
-      message: 'Change password successfully',
-      user: user.toDto(AdminUserResDto),
-    });
   }
 }

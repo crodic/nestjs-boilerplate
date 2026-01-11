@@ -17,7 +17,7 @@ function setupSwagger(app: INestApplication) {
       'alice01422@gmail.com',
     )
     .addBearerAuth()
-    .addApiKey({ type: 'apiKey', name: 'Api-Key', in: 'header' }, 'Api-Key')
+    // .addApiKey({ type: 'apiKey', name: 'Api-Key', in: 'header' }, 'Api-Key')
     .addServer(
       configService.getOrThrow('app.url', { infer: true }),
       'Development',

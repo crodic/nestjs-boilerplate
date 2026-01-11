@@ -1,4 +1,3 @@
-import { CaslAbilityFactory } from '@/libs/casl/ability.factory';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { RoleEntity } from '../role/entities/role.entity';
@@ -13,6 +12,6 @@ import { AdminUserEntity } from './entities/admin-user.entity';
     TypeOrmModule.forFeature([RoleEntity, AdminUserEntity]),
   ],
   controllers: [AdminUserController],
-  providers: [AdminUserService, CaslAbilityFactory],
+  providers: [AdminUserService],
 })
 export class AdminUserModule {}

@@ -19,19 +19,6 @@ import { UserModule } from './user/user.module';
       rootPath: join(__dirname, '..', '..', 'uploads'),
       serveRoot: '/uploads',
     }),
-    // ServeStaticModule.forRoot({
-    //   rootPath: join(
-    //     __dirname,
-    //     '..',
-    //     '..',
-    //     'node_modules',
-    //     'nestlens',
-    //     'dist',
-    //     'dashboard',
-    //     'public',
-    //   ),
-    //   serveRoot: '/nestlens',
-    // }),
     ClsModule.forRoot({
       global: true,
       middleware: { mount: true },

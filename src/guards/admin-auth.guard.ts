@@ -1,11 +1,15 @@
 import { IS_PUBLIC } from '@/constants/app.constant';
-import { ExecutionContext, Injectable } from '@nestjs/common';
+import {
+  ExecutionContext,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
 import { ClsService } from 'nestjs-cls';
 
 @Injectable()
-export class UserAuthGuard extends AuthGuard('user-jwt') {
+export class AdminAuthGuard extends AuthGuard('admin-jwt') {
   constructor(
     private readonly cls: ClsService,
     private reflector: Reflector,
@@ -24,16 +28,18 @@ export class UserAuthGuard extends AuthGuard('user-jwt') {
     return super.canActivate(context);
   }
 
-  handleRequest(err, user, info, context) {
+  handleRequest(err, user, info, context: ExecutionContext) {
     if (err || !user) {
-      throw err || info;
+      const message = info?.message || 'Unauthorized';
+      throw new UnauthorizedException(message);
     }
 
-    const req = context.switchToHttp().getRequest();
-    req.user = user;
+    const request = context.switchToHttp().getRequest();
+    request.user = user;
 
+    // Set CLS values
     this.cls.set('userId', user.id);
-    this.cls.set('userType', 'user');
+    this.cls.set('userRole', 'admin'); // nếu cần
 
     return user;
   }

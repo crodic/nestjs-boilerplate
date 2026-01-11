@@ -109,6 +109,7 @@
     "@types/node": "^22.8.7",
     "@types/nodemailer": "^6.4.16",
     "@types/passport-google-oauth20": "^2.0.16",
+    "@types/passport-jwt": "^4.0.1",
     "@types/qs": "^6.14.0",
     "@types/supertest": "^6.0.2",
     "@types/uuid": "^10.0.0",

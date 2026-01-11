@@ -1,24 +1,23 @@
-import { IS_AUTH_OPTIONAL, IS_PUBLIC } from '@/constants/app.constant';
+import { IS_PUBLIC } from '@/constants/app.constant';
 import {
-  CanActivate,
   ExecutionContext,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { Request } from 'express';
+import { AuthGuard } from '@nestjs/passport';
 import { ClsService } from 'nestjs-cls';
-import { UserAuthService } from './../api/auth/services/user-auth.service';
 
 @Injectable()
-export class UserAuthGuard implements CanActivate {
+export class UserAuthGuard extends AuthGuard('user-jwt') {
   constructor(
+    private readonly cls: ClsService,
     private reflector: Reflector,
-    private userAuthService: UserAuthService,
-    private cls: ClsService,
-  ) {}
+  ) {
+    super();
+  }
 
-  async canActivate(context: ExecutionContext): Promise<boolean> {
+  canActivate(context: ExecutionContext) {
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC, [
       context.getHandler(),
       context.getClass(),
@@ -26,33 +25,21 @@ export class UserAuthGuard implements CanActivate {
 
     if (isPublic) return true;
 
-    const isAuthOptional = this.reflector.getAllAndOverride<boolean>(
-      IS_AUTH_OPTIONAL,
-      [context.getHandler(), context.getClass()],
-    );
-
-    const request = context.switchToHttp().getRequest();
-
-    const accessToken = this.extractTokenFromHeader(request);
-
-    if (isAuthOptional && !accessToken) {
-      return true;
-    }
-    if (!accessToken) {
-      throw new UnauthorizedException();
-    }
-
-    request['customer'] =
-      await this.userAuthService.verifyAccessToken(accessToken);
-    const customerId = request.customer?.id;
-
-    this.cls.set('customerId', customerId);
-
-    return true;
+    return super.canActivate(context);
   }
 
-  private extractTokenFromHeader(request: Request): string | undefined {
-    const [type, token] = request.headers.authorization?.split(' ') ?? [];
-    return type === 'Bearer' ? token : undefined;
+  handleRequest(err, user, info, context) {
+    if (err || !user) {
+      const message = info?.message || 'Unauthorized';
+      throw new UnauthorizedException(message);
+    }
+
+    const req = context.switchToHttp().getRequest();
+    req.user = user;
+
+    this.cls.set('userId', user.id);
+    this.cls.set('userType', 'user');
+
+    return user;
   }
 }
