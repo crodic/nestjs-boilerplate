@@ -21,6 +21,12 @@ import { NestLensModule } from 'nestlens';
         cache: true,
         mail: true,
       },
+      authorization: {
+        canAccess: (req) => {
+          console.log('Auth check:', req.headers);
+          return true; // Test with always true
+        },
+      },
     }),
   ],
   exports: [NestLensModule],
