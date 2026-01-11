@@ -39,7 +39,6 @@ export class AdminAuthGuard extends AuthGuard('admin-jwt') {
 
     // Set CLS values
     this.cls.set('userId', user.id);
-    this.cls.set('userRole', 'admin'); // nếu cần
 
     return user;
   }

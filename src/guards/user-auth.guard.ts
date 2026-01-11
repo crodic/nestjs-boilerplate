@@ -38,7 +38,6 @@ export class UserAuthGuard extends AuthGuard('user-jwt') {
     req.user = user;
 
     this.cls.set('userId', user.id);
-    this.cls.set('userType', 'user');
 
     return user;
   }

@@ -4,7 +4,7 @@ import { ChangePasswordReqDto } from '@/api/admin-user/dto/change-password.req.d
 import { ChangePasswordResDto } from '@/api/admin-user/dto/change-password.res.dto';
 import { UpdateMeReqDto } from '@/api/admin-user/dto/update-me.req.dto';
 import { Uuid } from '@/common/types/common.type';
-import { CurrentAdmin, CurrentUser } from '@/decorators/current-user.decorator';
+import { CurrentUser } from '@/decorators/current-user.decorator';
 import { ApiAuth, ApiPublic } from '@/decorators/http.decorators';
 import { AdminAuthGuard } from '@/guards/admin-auth.guard';
 import {
@@ -122,7 +122,7 @@ export class AdminAuthenticationController {
     summary: 'Get current user',
   })
   async getCurrentUser(
-    @CurrentAdmin('id') userId: Uuid,
+    @CurrentUser('id') userId: Uuid,
   ): Promise<AdminUserResDto> {
     return await this.adminAuthService.me(userId);
   }
@@ -135,7 +135,7 @@ export class AdminAuthenticationController {
   })
   @UseInterceptors(FileInterceptor('image', avatarUploadOption))
   async updateCurrentUser(
-    @CurrentAdmin('id') userId: Uuid,
+    @CurrentUser('id') userId: Uuid,
     @Body() reqDto: UpdateMeReqDto,
     @UploadedFile(
       new ParseFilePipe({

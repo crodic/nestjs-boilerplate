@@ -3,7 +3,6 @@ export enum AppSubjects {
   Role = 'ROLE',
   Log = 'LOG',
   Admin = 'ADMIN',
-  Page = 'Page',
 
   All = 'all',
 }
@@ -36,12 +35,6 @@ export const ALL_PERMISSIONS = [
   { name: `${AppActions.Create}:${AppSubjects.Role}` },
   { name: `${AppActions.Update}:${AppSubjects.Role}` },
   { name: `${AppActions.Delete}:${AppSubjects.Role}` },
-
-  // Page
-  { name: `${AppActions.Read}:${AppSubjects.Page}` },
-  { name: `${AppActions.Create}:${AppSubjects.Page}` },
-  { name: `${AppActions.Update}:${AppSubjects.Page}` },
-  { name: `${AppActions.Delete}:${AppSubjects.Page}` },
 
   // Log
   { name: `${AppActions.Read}:${AppSubjects.Log}` },
