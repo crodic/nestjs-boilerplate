@@ -138,17 +138,17 @@ function generateModulesSet() {
   switch (modulesSet) {
     case 'monolith':
       customModules = [
-        LibsModule,
+        dbModule,
         cacheModule,
-        ApiModule,
         bullModule,
         bullBoardModule,
-        BackgroundModule,
-        dbModule,
         i18nModule,
         loggerModule,
+        LibsModule,
+        BackgroundModule,
         MailModule,
         MailWatcherModule,
+        ApiModule,
       ];
       break;
     case 'api':

@@ -1,12 +1,10 @@
 import { QueueName, QueuePrefix } from '@/constants/job.constant';
 import { BullMQAdapter } from '@bull-board/api/bullMQAdapter';
 import { BullBoardModule } from '@bull-board/nestjs';
-import { MailerService } from '@nestjs-modules/mailer';
 import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { NESTLENS_MAILER_SERVICE } from 'nestlens';
 import { AdminUserEntity } from '../admin-user/entities/admin-user.entity';
 import { UserEntity } from '../user/entities/user.entity';
 import { AdminAuthenticationController } from './controllers/admin-auth.controller';
@@ -38,10 +36,6 @@ import { UserJwtStrategy } from './strategy/user.stategy';
   providers: [
     AdminAuthService,
     UserAuthService,
-    {
-      provide: NESTLENS_MAILER_SERVICE,
-      useExisting: MailerService,
-    },
     AdminJwtStrategy,
     UserJwtStrategy,
   ],

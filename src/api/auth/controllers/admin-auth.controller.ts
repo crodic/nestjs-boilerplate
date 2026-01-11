@@ -73,7 +73,7 @@ export class AdminAuthenticationController {
     summary: '[Admin] Refresh token',
   })
   @Post('refresh')
-  async adminRefresh(@Body() dto: RefreshReqDto): Promise<RefreshResDto> {
+  async refresh(@Body() dto: RefreshReqDto): Promise<RefreshResDto> {
     return await this.adminAuthService.refreshToken(dto);
   }
 
@@ -82,7 +82,7 @@ export class AdminAuthenticationController {
     summary: '[Admin] Forgot password',
   })
   @Post('forgot-password')
-  async adminForgotPassword(
+  async forgotPassword(
     @Body() dto: ForgotPasswordReqDto,
   ): Promise<ForgotPasswordResDto> {
     return await this.adminAuthService.forgotPassword(dto);
@@ -91,7 +91,7 @@ export class AdminAuthenticationController {
   @ApiPublic({ summary: '[Admin] Verify account' })
   @ApiQuery({ name: 'token', type: 'string' })
   @Get('verify')
-  async adminVerifyAccount(@Query('token') token: string) {
+  async verifyAccount(@Query('token') token: string) {
     return await this.adminAuthService.verifyAccount(token);
   }
 
@@ -100,7 +100,7 @@ export class AdminAuthenticationController {
     summary: '[Admin] Resend verify email',
   })
   @Post('verify/resend')
-  async adminResendVerifyEmail(
+  async resendVerifyEmail(
     @Body() dto: ResendEmailVerifyReqDto,
   ): Promise<ResendEmailVerifyResDto> {
     return this.adminAuthService.resendVerifyEmail(dto);
@@ -109,7 +109,7 @@ export class AdminAuthenticationController {
   @ApiPublic({ type: ResetPasswordReqDto, summary: '[Admin] Reset password' })
   @ApiQuery({ name: 'token', type: 'string' })
   @Post('reset-password')
-  async adminResetPassword(
+  async resetPassword(
     @Query('token') token: string,
     @Body() dto: ResetPasswordReqDto,
   ) {
@@ -121,9 +121,7 @@ export class AdminAuthenticationController {
     type: AdminUserResDto,
     summary: 'Get current user',
   })
-  async getCurrentUser(
-    @CurrentUser('id') userId: Uuid,
-  ): Promise<AdminUserResDto> {
+  async me(@CurrentUser('id') userId: Uuid): Promise<AdminUserResDto> {
     return await this.adminAuthService.me(userId);
   }
 
@@ -134,7 +132,7 @@ export class AdminAuthenticationController {
     summary: 'Update current user',
   })
   @UseInterceptors(FileInterceptor('image', avatarUploadOption))
-  async updateCurrentUser(
+  async updateMe(
     @CurrentUser('id') userId: Uuid,
     @Body() reqDto: UpdateMeReqDto,
     @UploadedFile(
