@@ -11,8 +11,8 @@ import { AdminAuthenticationController } from './controllers/admin-auth.controll
 import { UserAuthenticationController } from './controllers/user-auth.controller';
 import { AdminAuthService } from './services/admin-auth.service';
 import { UserAuthService } from './services/user-auth.service';
-import { AdminJwtStrategy } from './strategy/admin.stategy';
-import { UserJwtStrategy } from './strategy/user.stategy';
+import { AdminJwtStrategy } from './strategy/admin.strategy';
+import { UserJwtStrategy } from './strategy/user.strategy';
 
 @Module({
   imports: [
