@@ -18,6 +18,7 @@ import {
 } from 'nestjs-paginate';
 import { EntityManager, Repository } from 'typeorm';
 import { RoleEntity } from '../role/entities/role.entity';
+import { SettingsService } from '../settings/settings.service';
 import { AdminUserResDto } from './dto/admin-user.res.dto';
 import { CreateAdminUserReqDto } from './dto/create-admin-user.req.dto';
 import { UpdateAdminUserReqDto } from './dto/update-admin-user.req.dto';
@@ -35,6 +36,7 @@ export class AdminUserService {
     private cls: ClsService,
     @Inject(CACHE_MANAGER)
     private readonly cacheManager: Cache,
+    private readonly settingsService: SettingsService,
   ) {}
 
   async hasAdmin(): Promise<boolean> {
@@ -120,6 +122,10 @@ export class AdminUserService {
 
   async findAllUser(query: PaginateQuery): Promise<Paginated<AdminUserResDto>> {
     const queryBuilder = this.adminUserRepository.createQueryBuilder('admin');
+
+    const settings = await this.settingsService.get('APP_SETTING_KEY');
+
+    console.log(settings);
 
     const result = await paginate(query, queryBuilder, {
       sortableColumns: ['id', 'email', 'username', 'createdAt', 'updatedAt'],

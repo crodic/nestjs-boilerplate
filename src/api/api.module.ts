@@ -11,6 +11,7 @@ import { HomeModule } from './home/home.module';
 import { NotificationModule } from './notification/notification.module';
 import { PostModule } from './post/post.module';
 import { RoleModule } from './role/role.module';
+import { SettingsModule } from './settings/settings.module';
 import { UserModule } from './user/user.module';
 
 @Module({
@@ -33,6 +34,7 @@ import { UserModule } from './user/user.module';
     AdminUserModule,
     FileUploadModule,
     NotificationModule,
+    SettingsModule,
   ],
 })
 export class ApiModule {}
