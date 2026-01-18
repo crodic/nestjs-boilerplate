@@ -1,6 +1,7 @@
 import { Uuid } from '@/common/types/common.type';
 import { ApiAuth, ApiAuthWithPaginate } from '@/decorators/http.decorators';
 import { CheckPolicies } from '@/decorators/policies.decorator';
+import { AdminAuthGuard } from '@/guards/admin-auth.guard';
 import { PoliciesGuard } from '@/guards/policies.guard';
 import { AppAbility } from '@/libs/casl/ability.factory';
 import { AppActions, AppSubjects } from '@/utils/permissions.constant';
@@ -23,7 +24,7 @@ import { AuditLogResDto } from './dto/audit-log.res.dto';
 
 @ApiTags('Audit Logs')
 @Controller({ path: 'audit-logs', version: '1' })
-@UseGuards(PoliciesGuard)
+@UseGuards(AdminAuthGuard, PoliciesGuard)
 export class AuditLogController {
   constructor(private readonly auditLogService: AuditLogService) {}
 

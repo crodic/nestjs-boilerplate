@@ -1,7 +1,6 @@
-import { Global, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { NestLensModule } from 'nestlens';
 
-@Global()
 @Module({
   imports: [
     NestLensModule.forRoot({
@@ -21,6 +20,11 @@ import { NestLensModule } from 'nestlens';
         log: true,
         cache: true,
         mail: true,
+      },
+      authorization: {
+        canAccess: () => {
+          return true;
+        },
       },
     }),
   ],

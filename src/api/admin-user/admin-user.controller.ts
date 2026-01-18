@@ -1,7 +1,7 @@
 import { Uuid } from '@/common/types/common.type';
-import { CurrentUser } from '@/decorators/current-user.decorator';
 import { ApiAuth, ApiAuthWithPaginate } from '@/decorators/http.decorators';
 import { CheckPolicies } from '@/decorators/policies.decorator';
+import { AdminAuthGuard } from '@/guards/admin-auth.guard';
 import { PoliciesGuard } from '@/guards/policies.guard';
 import { AppAbility } from '@/libs/casl/ability.factory';
 import { AppActions, AppSubjects } from '@/utils/permissions.constant';
@@ -9,21 +9,15 @@ import {
   Body,
   Controller,
   Delete,
-  FileTypeValidator,
   Get,
   HttpStatus,
-  MaxFileSizeValidator,
   Param,
-  ParseFilePipe,
   ParseUUIDPipe,
   Post,
   Put,
-  UploadedFile,
   UseGuards,
-  UseInterceptors,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiConsumes, ApiParam, ApiTags } from '@nestjs/swagger';
+import { ApiParam, ApiTags } from '@nestjs/swagger';
 import {
   FilterOperator,
   Paginate,
@@ -31,20 +25,16 @@ import {
   PaginateQuery,
 } from 'nestjs-paginate';
 import { AdminUserService } from './admin-user.service';
-import { avatarUploadOption } from './configs/multer.config';
 import { AdminUserResDto } from './dto/admin-user.res.dto';
-import { ChangePasswordReqDto } from './dto/change-password.req.dto';
-import { ChangePasswordResDto } from './dto/change-password.res.dto';
 import { CreateAdminUserReqDto } from './dto/create-admin-user.req.dto';
 import { UpdateAdminUserReqDto } from './dto/update-admin-user.req.dto';
-import { UpdateMeReqDto } from './dto/update-me.req.dto';
 
 @ApiTags('Admin Users')
 @Controller({
   path: 'admin-users',
   version: '1',
 })
-@UseGuards(PoliciesGuard)
+@UseGuards(AdminAuthGuard, PoliciesGuard)
 export class AdminUserController {
   constructor(private readonly adminUserService: AdminUserService) {}
 
@@ -79,19 +69,6 @@ export class AdminUserController {
 
   // --------------------------------------------------
 
-  @Get('me')
-  @ApiAuth({
-    type: AdminUserResDto,
-    summary: 'Get current user',
-  })
-  async getCurrentUser(
-    @CurrentUser('id') userId: Uuid,
-  ): Promise<AdminUserResDto> {
-    return await this.adminUserService.me(userId);
-  }
-
-  // --------------------------------------------------
-
   @Post()
   @ApiAuth({
     type: AdminUserResDto,
@@ -105,31 +82,6 @@ export class AdminUserController {
     @Body() createAdminUserDto: CreateAdminUserReqDto,
   ): Promise<AdminUserResDto> {
     return await this.adminUserService.create(createAdminUserDto);
-  }
-
-  @Put('me')
-  @ApiConsumes('multipart/form-data')
-  @ApiAuth({
-    type: AdminUserResDto,
-    summary: 'Update current user',
-  })
-  @UseInterceptors(FileInterceptor('image', avatarUploadOption))
-  async updateCurrentUser(
-    @CurrentUser('id') userId: Uuid,
-    @Body() reqDto: UpdateMeReqDto,
-    @UploadedFile(
-      new ParseFilePipe({
-        validators: [
-          new MaxFileSizeValidator({ maxSize: 5 * 1024 * 1024 }),
-          new FileTypeValidator({ fileType: /(jpeg|png|jpg)$/ }),
-        ],
-        fileIsRequired: false,
-        errorHttpStatusCode: HttpStatus.BAD_REQUEST,
-      }),
-    )
-    image?: Express.Multer.File,
-  ): Promise<{ message: string }> {
-    return await this.adminUserService.updateMe(userId, reqDto, image);
   }
 
   // --------------------------------------------------
@@ -174,20 +126,5 @@ export class AdminUserController {
   )
   removeUser(@Param('id', ParseUUIDPipe) id: Uuid) {
     return this.adminUserService.remove(id);
-  }
-
-  // --------------------------------------------------
-
-  @ApiAuth({
-    type: ChangePasswordResDto,
-    summary: 'Change password',
-    errorResponses: [400, 401, 403, 404, 500],
-  })
-  @Post('me/change-password')
-  async changePassword(
-    @CurrentUser('id') userId: Uuid,
-    @Body() reqDto: ChangePasswordReqDto,
-  ): Promise<ChangePasswordResDto> {
-    return this.adminUserService.changePassword(userId, reqDto);
   }
 }

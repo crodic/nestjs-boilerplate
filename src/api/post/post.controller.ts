@@ -5,6 +5,8 @@ import {
   ApiAuthWithPaginate,
   SimpleApiPublic,
 } from '@/decorators/http.decorators';
+import { AdminAuthGuard } from '@/guards/admin-auth.guard';
+import { PoliciesGuard } from '@/guards/policies.guard';
 import {
   Body,
   Controller,
@@ -15,6 +17,7 @@ import {
   Post,
   Put,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import {
@@ -35,6 +38,7 @@ import { PostService } from './post.service';
   path: 'posts',
   version: '1',
 })
+@UseGuards(AdminAuthGuard, PoliciesGuard)
 export class PostController {
   constructor(private readonly postService: PostService) {}
 

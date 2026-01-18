@@ -6,6 +6,7 @@ import { AllConfigType } from '@/config/config.type';
 import { Environment } from '@/constants/app.constant';
 import databaseConfig from '@/database/config/database.config';
 import { TypeOrmConfigService } from '@/database/typeorm-config.service';
+import { LibsModule } from '@/libs/libs.module';
 import mailConfig from '@/mail/config/mail.config';
 import { MailWatcherModule } from '@/mail/mail-watcher.module';
 import { MailModule } from '@/mail/mail.module';
@@ -28,7 +29,6 @@ import { LoggerModule } from 'nestjs-pino';
 import path from 'path';
 import { DataSource, DataSourceOptions } from 'typeorm';
 import loggerFactory from './logger-factory';
-import { MonitoringModule } from './monitoring.module';
 
 function generateModulesSet() {
   const imports: ModuleMetadata['imports'] = [
@@ -40,6 +40,7 @@ function generateModulesSet() {
   ];
   let customModules: ModuleMetadata['imports'] = [];
 
+  // Database Module
   const dbModule = TypeOrmModule.forRootAsync({
     useClass: TypeOrmConfigService,
     dataSourceFactory: async (options: DataSourceOptions) => {
@@ -51,6 +52,7 @@ function generateModulesSet() {
     },
   });
 
+  // Background Jobs Module
   const bullModule = BullModule.forRootAsync({
     imports: [ConfigModule],
     useFactory: (configService: ConfigService<AllConfigType>) => {
@@ -72,11 +74,13 @@ function generateModulesSet() {
     inject: [ConfigService],
   });
 
+  // Background Jobs Dashboard
   const bullBoardModule = BullBoardModule.forRoot({
     route: '/queues',
-    adapter: ExpressAdapter, // Or FastifyAdapter from `@bull-board/fastify`
+    adapter: ExpressAdapter,
   });
 
+  // Localization Module
   const i18nModule = I18nModule.forRootAsync({
     resolvers: [
       { use: QueryResolver, options: ['lang'] },
@@ -105,12 +109,14 @@ function generateModulesSet() {
     inject: [ConfigService],
   });
 
+  // Logger Module
   const loggerModule = LoggerModule.forRootAsync({
     imports: [ConfigModule],
     inject: [ConfigService],
     useFactory: loggerFactory,
   });
 
+  // Cache Module
   const cacheModule = CacheModule.registerAsync({
     imports: [ConfigModule],
     useFactory: async (configService: ConfigService<AllConfigType>) => {
@@ -138,22 +144,22 @@ function generateModulesSet() {
   switch (modulesSet) {
     case 'monolith':
       customModules = [
-        MonitoringModule,
-        ApiModule,
+        dbModule,
+        cacheModule,
         bullModule,
         bullBoardModule,
-        BackgroundModule,
-        cacheModule,
-        dbModule,
         i18nModule,
         loggerModule,
+        LibsModule,
+        BackgroundModule,
         MailModule,
         MailWatcherModule,
+        ApiModule,
       ];
       break;
     case 'api':
       customModules = [
-        MonitoringModule,
+        LibsModule,
         ApiModule,
         bullModule,
         cacheModule,
@@ -166,7 +172,7 @@ function generateModulesSet() {
       break;
     case 'background':
       customModules = [
-        MonitoringModule,
+        LibsModule,
         bullModule,
         BackgroundModule,
         cacheModule,

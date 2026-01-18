@@ -1,4 +1,3 @@
-import { CaslAbilityFactory } from '@/libs/casl/ability.factory';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuditLogController } from './audit-log.controller';
@@ -8,7 +7,7 @@ import { AuditLogSubscriber } from './subscribers/audit-log.subscriber';
 
 @Module({
   imports: [TypeOrmModule.forFeature([AuditLogEntity])],
-  providers: [AuditLogSubscriber, AuditLogService, CaslAbilityFactory],
+  providers: [AuditLogSubscriber, AuditLogService],
   controllers: [AuditLogController],
 })
 export class AuditLogModule {}

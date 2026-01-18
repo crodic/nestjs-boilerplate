@@ -9,7 +9,6 @@ import { FileUploadModule } from './file-upload/file-upload.module';
 import { HealthModule } from './health/health.module';
 import { HomeModule } from './home/home.module';
 import { NotificationModule } from './notification/notification.module';
-import { PageModule } from './page/page.module';
 import { PostModule } from './post/post.module';
 import { RoleModule } from './role/role.module';
 import { UserModule } from './user/user.module';
@@ -19,19 +18,6 @@ import { UserModule } from './user/user.module';
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', '..', 'uploads'),
       serveRoot: '/uploads',
-    }),
-    ServeStaticModule.forRoot({
-      rootPath: join(
-        __dirname,
-        '..',
-        '..',
-        'node_modules',
-        'nestlens',
-        'dist',
-        'dashboard',
-        'public',
-      ),
-      serveRoot: '/nestlens',
     }),
     ClsModule.forRoot({
       global: true,
@@ -47,7 +33,6 @@ import { UserModule } from './user/user.module';
     AdminUserModule,
     FileUploadModule,
     NotificationModule,
-    PageModule,
   ],
 })
 export class ApiModule {}

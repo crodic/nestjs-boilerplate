@@ -3,16 +3,8 @@ import { SYSTEM_USER_ID } from '@/constants/app.constant';
 import { CacheKey } from '@/constants/cache.constant';
 import { ErrorCode } from '@/constants/error-code.constant';
 import { ValidationException } from '@/exceptions/validation.exception';
-import { deleteFile } from '@/utils/file';
-import { verifyPassword } from '@/utils/password.util';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import {
-  ForbiddenException,
-  Inject,
-  Injectable,
-  Logger,
-  NotFoundException,
-} from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import assert from 'assert';
 import { Cache } from 'cache-manager';
@@ -26,13 +18,9 @@ import {
 } from 'nestjs-paginate';
 import { EntityManager, Repository } from 'typeorm';
 import { RoleEntity } from '../role/entities/role.entity';
-import { AVATAR_PATH } from './configs/multer.config';
 import { AdminUserResDto } from './dto/admin-user.res.dto';
-import { ChangePasswordReqDto } from './dto/change-password.req.dto';
-import { ChangePasswordResDto } from './dto/change-password.res.dto';
 import { CreateAdminUserReqDto } from './dto/create-admin-user.req.dto';
 import { UpdateAdminUserReqDto } from './dto/update-admin-user.req.dto';
-import { UpdateMeReqDto } from './dto/update-me.req.dto';
 import { AdminUserEntity } from './entities/admin-user.entity';
 
 @Injectable()
@@ -162,47 +150,6 @@ export class AdminUserService {
     return user.toDto(AdminUserResDto);
   }
 
-  async me(id: Uuid): Promise<AdminUserResDto> {
-    assert(id, 'id is required');
-    const user = await this.adminUserRepository.findOneBy({ id });
-
-    if (!user) {
-      throw new ForbiddenException('Forbidden');
-    }
-
-    return user.toDto(AdminUserResDto);
-  }
-
-  async updateMe(
-    id: Uuid,
-    dto: UpdateMeReqDto,
-    file: Express.Multer.File,
-  ): Promise<{ message: string }> {
-    const user = await this.adminUserRepository.findOneBy({ id });
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-
-    delete user.password;
-
-    if (dto.removeAvatar || file) {
-      await deleteFile(user.image);
-      user.image = null;
-    }
-
-    Object.assign(user, {
-      ...dto,
-      updatedBy: id,
-      ...(file && { image: AVATAR_PATH + '/' + file.filename }),
-    });
-
-    await this.adminUserRepository.save(user);
-
-    return {
-      message: 'success',
-    };
-  }
-
   async update(id: Uuid, updateUserDto: UpdateAdminUserReqDto) {
     const user = await this.adminUserRepository.findOneByOrFail({ id });
     const updatedRole = await this.roleRepository.findOneBy({
@@ -222,30 +169,5 @@ export class AdminUserService {
   async remove(id: Uuid) {
     await this.adminUserRepository.findOneByOrFail({ id });
     await this.adminUserRepository.softDelete(id);
-  }
-
-  async changePassword(
-    id: Uuid,
-    dto: ChangePasswordReqDto,
-  ): Promise<ChangePasswordResDto> {
-    const user = await this.adminUserRepository.findOneByOrFail({ id });
-    const isPasswordValid = await verifyPassword(dto.password, user.password);
-    if (!isPasswordValid) {
-      throw new ValidationException(ErrorCode.V003);
-    }
-
-    if (dto.newPassword !== dto.confirmNewPassword) {
-      throw new ValidationException(ErrorCode.V003);
-    }
-
-    user.password = dto.newPassword;
-    user.updatedBy = id;
-
-    await this.adminUserRepository.save(user);
-
-    return plainToInstance(ChangePasswordResDto, {
-      message: 'Change password successfully',
-      user: user.toDto(AdminUserResDto),
-    });
   }
 }

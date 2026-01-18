@@ -11,14 +11,11 @@ import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import compression from 'compression';
 import helmet from 'helmet';
-import { ClsService } from 'nestjs-cls';
 import { updateGlobalConfig } from 'nestjs-paginate';
 import { NestLensLogger } from 'nestlens';
-import { AuthService } from './api/auth/auth.service';
 import { AppModule } from './app.module';
 import { type AllConfigType } from './config/config.type';
 import { GlobalExceptionFilter } from './filters/global-exception.filter';
-import { AuthGuard } from './guards/auth.guard';
 import setupSwagger from './utils/setup-swagger';
 
 async function bootstrap() {
@@ -99,9 +96,10 @@ async function bootstrap() {
     type: VersioningType.URI,
   });
 
-  app.useGlobalGuards(
-    new AuthGuard(reflector, app.get(AuthService), app.get(ClsService)),
-  );
+  // app.useGlobalGuards(
+  //   new AuthGuard(reflector, app.get(AdminAuthService), app.get(ClsService)),
+  //   new UserAuthGuard(reflector, app.get(UserAuthService), app.get(ClsService)),
+  // );
   app.useGlobalFilters(new GlobalExceptionFilter(configService));
   app.useGlobalPipes(
     new ValidationPipe({
