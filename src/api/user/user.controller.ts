@@ -51,6 +51,7 @@ export class UserController {
         createdAt: [FilterOperator.BTW],
         email: [FilterOperator.ILIKE],
         username: [FilterOperator.ILIKE],
+        id: [FilterOperator.EQ],
       },
     },
   )

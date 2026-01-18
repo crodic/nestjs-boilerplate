@@ -38,9 +38,10 @@ export class UserService {
       defaultSortBy: [['id', 'DESC']],
       relations: ['posts'],
       filterableColumns: {
-        createdAt: [FilterOperator.GTE, FilterOperator.LTE],
+        createdAt: [FilterOperator.BTW],
         email: [FilterOperator.ILIKE],
         username: [FilterOperator.ILIKE],
+        id: [FilterOperator.EQ],
       },
     });
 

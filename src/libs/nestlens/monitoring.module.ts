@@ -4,7 +4,7 @@ import { NestLensModule } from 'nestlens';
 @Module({
   imports: [
     NestLensModule.forRoot({
-      enabled: true,
+      enabled: process.env.NODE_ENV === 'development',
       storage: {
         driver: 'redis',
         memory: { maxEntries: 100000 },
