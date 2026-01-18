@@ -71,6 +71,14 @@ class EnvironmentVariablesValidator {
   @IsString()
   @IsOptional()
   APP_SECURE_HEADER_ORIGIN: string;
+
+  @IsString()
+  @IsOptional()
+  ALLOWED_IMAGES: string;
+
+  @IsString()
+  @IsOptional()
+  UPLOAD_FOLDER: string;
 }
 
 export default registerAs<AppConfig>('app', () => {
@@ -96,6 +104,10 @@ export default registerAs<AppConfig>('app', () => {
     corsOrigin: getCorsOrigin(),
     secureHeaderOrigin:
       process.env.APP_SECURE_HEADER_ORIGIN || `http://localhost:${port}`,
+    allowedImages: process.env.ALLOWED_IMAGES
+      ? process.env.ALLOWED_IMAGES.split(',')
+      : ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'],
+    uploadFolder: process.env.UPLOAD_FOLDER || 'uploads',
   };
 });
 

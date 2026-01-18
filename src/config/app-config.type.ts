@@ -10,4 +10,6 @@ export type AppConfig = {
   logService: string;
   corsOrigin: boolean | string | RegExp | (string | RegExp)[];
   secureHeaderOrigin: string;
+  allowedImages: string[];
+  uploadFolder: string;
 };

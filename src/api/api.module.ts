@@ -1,4 +1,6 @@
+import { AllConfigType } from '@/config/config.type';
 import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { ClsModule } from 'nestjs-cls';
 import { join } from 'path';
@@ -16,10 +18,26 @@ import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
-    ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', '..', 'uploads'),
-      serveRoot: '/uploads',
+    ServeStaticModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService<AllConfigType>) => {
+        const uploadRoot = config.get<AllConfigType>('app.uploadFolder', {
+          infer: true,
+        });
+
+        return [
+          {
+            rootPath: join(__dirname, '..', '..', uploadRoot),
+            serveRoot: '/uploads',
+          },
+        ];
+      },
     }),
+    // ServeStaticModule.forRoot({
+    //   rootPath: join(__dirname, '..', '..', 'uploads'),
+    //   serveRoot: '/uploads',
+    // }),
     ClsModule.forRoot({
       global: true,
       middleware: { mount: true },
