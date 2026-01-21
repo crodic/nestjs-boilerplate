@@ -10,7 +10,7 @@ import {
   IForgotPasswordEmailJob,
   IVerifyEmailJob,
 } from '@/common/interfaces/job.interface';
-import { Uuid } from '@/common/types/common.type';
+import { ID } from '@/common/types/common.type';
 import { Branded } from '@/common/types/types';
 import { AllConfigType } from '@/config/config.type';
 import { SYSTEM_USER_ID } from '@/constants/app.constant';
@@ -107,7 +107,7 @@ export class AdminAuthService {
 
     const session = new SessionEntity({
       hash,
-      userId: user.id,
+      userId: user.id as ID,
       createdBy: SYSTEM_USER_ID,
       updatedBy: SYSTEM_USER_ID,
       userType: ESessionUserType.ADMIN,
@@ -326,7 +326,7 @@ export class AdminAuthService {
     });
   }
 
-  async me(id: Uuid): Promise<AdminUserResDto> {
+  async me(id: ID): Promise<AdminUserResDto> {
     assert(id, 'id is required');
     const user = await this.adminUserRepository.findOneBy({ id });
 
@@ -338,7 +338,7 @@ export class AdminAuthService {
   }
 
   async updateMe(
-    id: Uuid,
+    id: ID,
     dto: UpdateMeReqDto,
     file: Express.Multer.File,
   ): Promise<{ message: string }> {
@@ -368,7 +368,7 @@ export class AdminAuthService {
   }
 
   async changePassword(
-    id: Uuid,
+    id: ID,
     dto: ChangePasswordReqDto,
   ): Promise<ChangePasswordResDto> {
     const user = await this.adminUserRepository.findOneByOrFail({ id });

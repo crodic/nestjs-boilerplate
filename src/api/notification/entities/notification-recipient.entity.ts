@@ -1,4 +1,4 @@
-import { Uuid } from '@/common/types/common.type';
+import { ID } from '@/common/types/common.type';
 import {
   Column,
   CreateDateColumn,
@@ -12,10 +12,11 @@ import { NotificationEntity } from './notification.entity';
 
 @Entity('notification-recipients')
 export class NotificationRecipientEntity {
-  @PrimaryGeneratedColumn('uuid', {
+  @PrimaryGeneratedColumn('increment', {
     primaryKeyConstraintName: 'PK_notification_recipient_id',
+    type: 'bigint',
   })
-  id!: Uuid;
+  id!: ID;
 
   @JoinColumn({
     name: 'notification_id',
@@ -31,11 +32,11 @@ export class NotificationRecipientEntity {
   )
   notification: Relation<NotificationEntity>;
 
-  @Column({ name: 'notification_id', type: 'uuid' })
-  notificationId: Uuid;
+  @Column({ name: 'notification_id', type: 'bigint' })
+  notificationId: ID;
 
-  @Column({ name: 'user_id', type: 'uuid' })
-  userId: Uuid;
+  @Column({ name: 'user_id', type: 'bigint' })
+  userId: ID;
 
   @Column({ default: false })
   isRead: boolean;

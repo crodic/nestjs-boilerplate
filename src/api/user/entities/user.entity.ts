@@ -1,5 +1,5 @@
 import { PostEntity } from '@/api/post/entities/post.entity';
-import { Uuid } from '@/common/types/common.type';
+import { ID } from '@/common/types/common.type';
 import { AbstractEntity } from '@/database/entities/abstract.entity';
 import { hashPassword as hashPass } from '@/utils/password.util';
 import {
@@ -21,8 +21,11 @@ export class UserEntity extends AbstractEntity {
     Object.assign(this, data);
   }
 
-  @PrimaryGeneratedColumn('uuid', { primaryKeyConstraintName: 'PK_user_id' })
-  id!: Uuid;
+  @PrimaryGeneratedColumn('increment', {
+    primaryKeyConstraintName: 'PK_user_id',
+    type: 'bigint',
+  })
+  id!: ID;
 
   @Column({
     length: 50,

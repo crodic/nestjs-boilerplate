@@ -1,4 +1,4 @@
-import { Uuid } from '@/common/types/common.type';
+import { ID } from '@/common/types/common.type';
 import { ESessionUserType } from '@/constants/entity.enum';
 import { AbstractEntity } from '@/database/entities/abstract.entity';
 import { Column, Entity, Index, PrimaryGeneratedColumn } from 'typeorm';
@@ -10,10 +10,11 @@ export class SessionEntity extends AbstractEntity {
     Object.assign(this, data);
   }
 
-  @PrimaryGeneratedColumn('uuid', {
+  @PrimaryGeneratedColumn('increment', {
+    type: 'bigint',
     primaryKeyConstraintName: 'PK_session_id',
   })
-  id!: Uuid;
+  id!: ID;
 
   @Column({
     name: 'hash',
@@ -25,9 +26,9 @@ export class SessionEntity extends AbstractEntity {
   @Index('IDX_sessions_user_id')
   @Column({
     name: 'user_id',
-    type: 'uuid',
+    type: 'bigint',
   })
-  userId: Uuid;
+  userId: ID;
 
   @Column({
     type: 'enum',

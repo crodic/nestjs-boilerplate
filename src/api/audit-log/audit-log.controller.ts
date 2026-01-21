@@ -1,17 +1,11 @@
-import { Uuid } from '@/common/types/common.type';
+import { ID } from '@/common/types/common.type';
 import { ApiAuth, ApiAuthWithPaginate } from '@/decorators/http.decorators';
 import { CheckPolicies } from '@/decorators/policies.decorator';
 import { AdminAuthGuard } from '@/guards/admin-auth.guard';
 import { PoliciesGuard } from '@/guards/policies.guard';
 import { AppAbility } from '@/libs/casl/ability.factory';
 import { AppActions, AppSubjects } from '@/utils/permissions.constant';
-import {
-  Controller,
-  Get,
-  Param,
-  ParseUUIDPipe,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Param, UseGuards } from '@nestjs/common';
 import { ApiParam, ApiTags } from '@nestjs/swagger';
 import {
   FilterOperator,
@@ -63,7 +57,7 @@ export class AuditLogController {
   @CheckPolicies((ability: AppAbility) =>
     ability.can(AppActions.Read, AppSubjects.Log),
   )
-  async findOne(@Param('id', ParseUUIDPipe) id: Uuid): Promise<AuditLogResDto> {
+  async findOne(@Param('id') id: ID): Promise<AuditLogResDto> {
     return await this.auditLogService.findOne(id);
   }
 }

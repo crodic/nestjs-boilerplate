@@ -1,5 +1,5 @@
 import { RoleEntity } from '@/api/role/entities/role.entity';
-import { Uuid } from '@/common/types/common.type';
+import { ID } from '@/common/types/common.type';
 import { AbstractEntity } from '@/database/entities/abstract.entity';
 import { hashPassword as hashPass } from '@/utils/password.util';
 import {
@@ -22,10 +22,11 @@ export class AdminUserEntity extends AbstractEntity {
     Object.assign(this, data);
   }
 
-  @PrimaryGeneratedColumn('uuid', {
+  @PrimaryGeneratedColumn('increment', {
     primaryKeyConstraintName: 'PK_admin_user_id',
+    type: 'bigint',
   })
-  id!: Uuid;
+  id!: ID;
 
   @Column({
     length: 50,
@@ -74,9 +75,9 @@ export class AdminUserEntity extends AbstractEntity {
 
   @Column({
     name: 'role_id',
-    type: 'uuid',
+    type: 'bigint',
   })
-  roleId: Uuid;
+  roleId: ID;
 
   @ManyToOne(() => RoleEntity, (role) => role.users, { eager: true })
   @JoinColumn({

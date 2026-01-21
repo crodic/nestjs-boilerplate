@@ -1,12 +1,13 @@
-import { Uuid } from '@/common/types/common.type';
+import { ID } from '@/common/types/common.type';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('settings')
 export class SettingEntity {
-  @PrimaryGeneratedColumn('uuid', {
+  @PrimaryGeneratedColumn('increment', {
     primaryKeyConstraintName: 'PK_setting_id',
+    type: 'bigint',
   })
-  id!: Uuid;
+  id!: ID;
 
   @Column({ unique: true })
   key: string;

@@ -1,4 +1,4 @@
-import { Uuid } from '@/common/types/common.type';
+import { ID } from '@/common/types/common.type';
 import { SYSTEM_USER_ID } from '@/constants/app.constant';
 import { CacheKey } from '@/constants/cache.constant';
 import { ErrorCode } from '@/constants/error-code.constant';
@@ -149,14 +149,14 @@ export class AdminUserService {
     } as Paginated<AdminUserResDto>;
   }
 
-  async findOne(id: Uuid): Promise<AdminUserResDto> {
+  async findOne(id: ID): Promise<AdminUserResDto> {
     assert(id, 'id is required');
     const user = await this.adminUserRepository.findOneByOrFail({ id });
 
     return user.toDto(AdminUserResDto);
   }
 
-  async update(id: Uuid, updateUserDto: UpdateAdminUserReqDto) {
+  async update(id: ID, updateUserDto: UpdateAdminUserReqDto) {
     const user = await this.adminUserRepository.findOneByOrFail({ id });
     const updatedRole = await this.roleRepository.findOneBy({
       id: updateUserDto.roleId,
@@ -172,7 +172,7 @@ export class AdminUserService {
     await this.adminUserRepository.save(user);
   }
 
-  async remove(id: Uuid) {
+  async remove(id: ID) {
     await this.adminUserRepository.findOneByOrFail({ id });
     await this.adminUserRepository.softDelete(id);
   }

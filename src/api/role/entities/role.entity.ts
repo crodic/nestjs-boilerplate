@@ -1,4 +1,5 @@
 import { AdminUserEntity } from '@/api/admin-user/entities/admin-user.entity';
+import { ID } from '@/common/types/common.type';
 import { AbstractEntity } from '@/database/entities/abstract.entity';
 import {
   Column,
@@ -17,10 +18,11 @@ export class RoleEntity extends AbstractEntity {
     Object.assign(this, data);
   }
 
-  @PrimaryGeneratedColumn('uuid', {
+  @PrimaryGeneratedColumn('increment', {
     primaryKeyConstraintName: 'PK_role_id',
+    type: 'bigint',
   })
-  id: string;
+  id!: ID;
 
   @Index('UQ_roles_name', { unique: true, where: '"deleted_at" IS NULL' })
   @Column()

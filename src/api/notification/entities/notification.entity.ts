@@ -1,4 +1,4 @@
-import { Uuid } from '@/common/types/common.type';
+import { ID } from '@/common/types/common.type';
 import {
   Column,
   CreateDateColumn,
@@ -11,13 +11,14 @@ import { NotificationRecipientEntity } from './notification-recipient.entity';
 
 @Entity('notifications')
 export class NotificationEntity {
-  @PrimaryGeneratedColumn('uuid', {
+  @PrimaryGeneratedColumn('increment', {
     primaryKeyConstraintName: 'PK_notification_id',
+    type: 'bigint',
   })
-  id!: Uuid;
+  id!: ID;
 
-  @Column({ nullable: true, name: 'actor_id', type: 'uuid' })
-  actorId?: Uuid;
+  @Column({ nullable: true, name: 'actor_id', type: 'bigint' })
+  actorId?: ID;
 
   @Column({ type: 'varchar', length: 255 })
   title: string;

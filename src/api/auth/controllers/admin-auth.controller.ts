@@ -3,7 +3,7 @@ import { AdminUserResDto } from '@/api/admin-user/dto/admin-user.res.dto';
 import { ChangePasswordReqDto } from '@/api/admin-user/dto/change-password.req.dto';
 import { ChangePasswordResDto } from '@/api/admin-user/dto/change-password.res.dto';
 import { UpdateMeReqDto } from '@/api/admin-user/dto/update-me.req.dto';
-import { Uuid } from '@/common/types/common.type';
+import { ID } from '@/common/types/common.type';
 import { CurrentUser } from '@/decorators/current-user.decorator';
 import { ApiAuth, ApiPublic } from '@/decorators/http.decorators';
 import { AdminAuthGuard } from '@/guards/admin-auth.guard';
@@ -121,7 +121,7 @@ export class AdminAuthenticationController {
     type: AdminUserResDto,
     summary: 'Get current user',
   })
-  async me(@CurrentUser('id') userId: Uuid): Promise<AdminUserResDto> {
+  async me(@CurrentUser('id') userId: ID): Promise<AdminUserResDto> {
     return await this.adminAuthService.me(userId);
   }
 
@@ -133,7 +133,7 @@ export class AdminAuthenticationController {
   })
   @UseInterceptors(FileInterceptor('image', avatarUploadOption))
   async updateMe(
-    @CurrentUser('id') userId: Uuid,
+    @CurrentUser('id') userId: ID,
     @Body() reqDto: UpdateMeReqDto,
     @UploadedFile(
       new ParseFilePipe({
@@ -157,7 +157,7 @@ export class AdminAuthenticationController {
   })
   @Post('me/change-password')
   async changePassword(
-    @CurrentUser('id') userId: Uuid,
+    @CurrentUser('id') userId: ID,
     @Body() reqDto: ChangePasswordReqDto,
   ): Promise<ChangePasswordResDto> {
     return this.adminAuthService.changePassword(userId, reqDto);

@@ -1,4 +1,4 @@
-import { Uuid } from '@/common/types/common.type';
+import { ID } from '@/common/types/common.type';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { plainToInstance } from 'class-transformer';
@@ -41,7 +41,7 @@ export class AuditLogService {
     } as Paginated<AuditLogResDto>;
   }
 
-  async findOne(id: Uuid): Promise<AuditLogResDto> {
+  async findOne(id: ID): Promise<AuditLogResDto> {
     assert(id, 'id is required');
     const log = await this.auditLogRepository.findOneByOrFail({ id });
 
