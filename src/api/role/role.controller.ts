@@ -1,4 +1,4 @@
-import { Uuid } from '@/common/types/common.type';
+import { ID } from '@/common/types/common.type';
 import { ApiAuth, ApiAuthWithPaginate } from '@/decorators/http.decorators';
 import {
   CheckPolicies,
@@ -14,7 +14,6 @@ import {
   Delete,
   Get,
   Param,
-  ParseUUIDPipe,
   Post,
   Put,
   UseGuards,
@@ -92,7 +91,7 @@ export class RoleController {
   @CheckPolicies((ability: AppAbility) =>
     ability.can(AppActions.Read, AppSubjects.Role),
   )
-  findOne(@Param('id', ParseUUIDPipe) id: Uuid) {
+  findOne(@Param('id') id: ID) {
     return this.roleService.findOne(id);
   }
 
@@ -102,10 +101,7 @@ export class RoleController {
   @CheckPolicies((ability: AppAbility) =>
     ability.can(AppActions.Update, AppSubjects.Role),
   )
-  update(
-    @Param('id', ParseUUIDPipe) id: Uuid,
-    @Body() updateRoleDto: UpdateRoleReqDto,
-  ) {
+  update(@Param('id') id: ID, @Body() updateRoleDto: UpdateRoleReqDto) {
     return this.roleService.update(id, updateRoleDto);
   }
 
@@ -118,7 +114,7 @@ export class RoleController {
     ability.can(AppActions.Delete, AppSubjects.Role),
   )
   @ApiParam({ name: 'id', type: 'String' })
-  remove(@Param('id', ParseUUIDPipe) id: Uuid) {
+  remove(@Param('id') id: ID) {
     return this.roleService.remove(id);
   }
 }

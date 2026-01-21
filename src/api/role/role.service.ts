@@ -1,4 +1,4 @@
-import { Uuid } from '@/common/types/common.type';
+import { ID } from '@/common/types/common.type';
 import { SYSTEM_USER_ID } from '@/constants/app.constant';
 import { CacheKey } from '@/constants/cache.constant';
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
@@ -101,13 +101,13 @@ export class RoleService {
     });
   }
 
-  async findOne(id: Uuid): Promise<RoleResDto> {
+  async findOne(id: ID): Promise<RoleResDto> {
     assert(id, 'id is required');
     const role = await this.roleRepository.findOneByOrFail({ id });
     return role.toDto(RoleResDto);
   }
 
-  async update(id: Uuid, updateRoleDto: UpdateRoleReqDto) {
+  async update(id: ID, updateRoleDto: UpdateRoleReqDto) {
     const role = await this.roleRepository.findOneByOrFail({ id });
 
     role.name = updateRoleDto.name;
@@ -118,7 +118,7 @@ export class RoleService {
     await this.roleRepository.save(role);
   }
 
-  async remove(id: Uuid) {
+  async remove(id: ID) {
     await this.roleRepository.findOneByOrFail({ id });
     await this.roleRepository.softDelete(id);
   }

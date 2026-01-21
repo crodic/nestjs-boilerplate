@@ -1,5 +1,5 @@
 import { OffsetPaginatedDto } from '@/common/dto/offset-pagination/paginated.dto';
-import { Uuid } from '@/common/types/common.type';
+import { ID } from '@/common/types/common.type';
 import { applyFilters } from '@/utils/apply-filter.filter';
 import { applySorts } from '@/utils/apply-sort.sort';
 import { paginate } from '@/utils/offset-pagination';
@@ -70,7 +70,7 @@ export class PostService {
     } as Paginated<PostResDto>;
   }
 
-  async findOne(id: Uuid): Promise<PostResDto> {
+  async findOne(id: ID): Promise<PostResDto> {
     assert(id, 'id is required');
     const post = await PostEntity.findOneByOrFail({ id });
 
@@ -81,11 +81,11 @@ export class PostService {
     throw new Error('Method not implemented.');
   }
 
-  update(_id: Uuid, _reqDto: UpdatePostReqDto) {
+  update(_id: ID, _reqDto: UpdatePostReqDto) {
     throw new Error('Method not implemented.');
   }
 
-  delete(_id: Uuid) {
+  delete(_id: ID) {
     throw new Error('Method not implemented.');
   }
 }

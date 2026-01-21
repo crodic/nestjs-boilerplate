@@ -1,4 +1,4 @@
-import { Uuid } from '@/common/types/common.type';
+import { ID } from '@/common/types/common.type';
 import { ApiAuth, ApiAuthWithPaginate } from '@/decorators/http.decorators';
 import { CheckPolicies } from '@/decorators/policies.decorator';
 import { AdminAuthGuard } from '@/guards/admin-auth.guard';
@@ -12,7 +12,6 @@ import {
   Get,
   HttpStatus,
   Param,
-  ParseUUIDPipe,
   Post,
   Put,
   UseGuards,
@@ -83,7 +82,7 @@ export class UserController {
   @CheckPolicies((ability: AppAbility) =>
     ability.can(AppActions.Read, AppSubjects.User),
   )
-  async findUser(@Param('id', ParseUUIDPipe) id: Uuid): Promise<UserResDto> {
+  async findUser(@Param('id') id: ID): Promise<UserResDto> {
     return await this.userService.findOne(id);
   }
 
@@ -93,10 +92,7 @@ export class UserController {
   @CheckPolicies((ability: AppAbility) =>
     ability.can(AppActions.Update, AppSubjects.User),
   )
-  updateUser(
-    @Param('id', ParseUUIDPipe) id: Uuid,
-    @Body() reqDto: UpdateUserReqDto,
-  ) {
+  updateUser(@Param('id') id: ID, @Body() reqDto: UpdateUserReqDto) {
     return this.userService.update(id, reqDto);
   }
 
@@ -109,7 +105,7 @@ export class UserController {
   @CheckPolicies((ability: AppAbility) =>
     ability.can(AppActions.Delete, AppSubjects.User),
   )
-  removeUser(@Param('id', ParseUUIDPipe) id: Uuid) {
+  removeUser(@Param('id') id: ID) {
     return this.userService.remove(id);
   }
 }

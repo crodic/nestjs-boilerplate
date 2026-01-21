@@ -1,7 +1,7 @@
 import { ChangePasswordReqDto } from '@/api/user/dto/change-password.req.dto';
 import { ChangePasswordResDto } from '@/api/user/dto/change-password.res.dto';
 import { UserResDto } from '@/api/user/dto/user.res.dto';
-import { Uuid } from '@/common/types/common.type';
+import { ID } from '@/common/types/common.type';
 import { CurrentUser } from '@/decorators/current-user.decorator';
 import { ApiAuth, ApiPublic } from '@/decorators/http.decorators';
 import { GoogleOAuthGuard } from '@/guards/google-oauth.guard';
@@ -128,7 +128,7 @@ export class UserAuthenticationController {
   })
   @Post('me/change-password')
   async changePassword(
-    @CurrentUser('id') userId: Uuid,
+    @CurrentUser('id') userId: ID,
     @Body() reqDto: ChangePasswordReqDto,
   ): Promise<ChangePasswordResDto> {
     return this.userAuthService.changePassword(userId, reqDto);
@@ -139,7 +139,7 @@ export class UserAuthenticationController {
     summary: 'Get current user',
   })
   @Get('me')
-  async getCurrentUser(@CurrentUser('id') userId: Uuid): Promise<UserResDto> {
+  async getCurrentUser(@CurrentUser('id') userId: ID): Promise<UserResDto> {
     return await this.userAuthService.me(userId);
   }
 }

@@ -1,4 +1,5 @@
 import { PostResDto } from '@/api/post/dto/post.res.dto';
+import { ID } from '@/common/types/common.type';
 import { WrapperType } from '@/common/types/types';
 import {
   BooleanField,
@@ -12,7 +13,7 @@ import { Exclude, Expose, Transform } from 'class-transformer';
 export class UserResDto {
   @StringField()
   @Expose()
-  id: string;
+  id: ID;
 
   @StringField()
   @Expose()

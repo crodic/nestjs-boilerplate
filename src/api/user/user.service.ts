@@ -1,4 +1,4 @@
-import { Uuid } from '@/common/types/common.type';
+import { ID } from '@/common/types/common.type';
 import { SYSTEM_USER_ID } from '@/constants/app.constant';
 import { ErrorCode } from '@/constants/error-code.constant';
 import { ValidationException } from '@/exceptions/validation.exception';
@@ -88,14 +88,14 @@ export class UserService {
     return plainToInstance(UserResDto, savedUser);
   }
 
-  async findOne(id: Uuid): Promise<UserResDto> {
+  async findOne(id: ID): Promise<UserResDto> {
     assert(id, 'id is required');
     const user = await this.userRepository.findOneByOrFail({ id });
 
     return user.toDto(UserResDto);
   }
 
-  async update(id: Uuid, updateUserDto: UpdateUserReqDto) {
+  async update(id: ID, updateUserDto: UpdateUserReqDto) {
     const user = await this.userRepository.findOneByOrFail({ id });
 
     user.bio = updateUserDto.bio;
@@ -105,7 +105,7 @@ export class UserService {
     await this.userRepository.save(user);
   }
 
-  async remove(id: Uuid) {
+  async remove(id: ID) {
     await this.userRepository.findOneByOrFail({ id });
     await this.userRepository.softDelete(id);
   }

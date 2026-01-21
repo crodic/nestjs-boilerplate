@@ -1,4 +1,3 @@
-import { Uuid } from '@/common/types/common.type';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { AdminUserService } from '../admin-user/admin-user.service';
@@ -57,7 +56,7 @@ export class HomeService {
         username,
         email,
         password,
-        roleId: role.id as Uuid,
+        roleId: role.id,
       });
 
       return { success: true, message: 'System initialized successfully' };

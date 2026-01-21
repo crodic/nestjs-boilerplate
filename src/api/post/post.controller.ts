@@ -1,5 +1,5 @@
 import { OffsetPaginatedDto } from '@/common/dto/offset-pagination/paginated.dto';
-import { Uuid } from '@/common/types/common.type';
+import { ID } from '@/common/types/common.type';
 import {
   ApiAuth,
   ApiAuthWithPaginate,
@@ -13,7 +13,6 @@ import {
   Delete,
   Get,
   Param,
-  ParseUUIDPipe,
   Post,
   Put,
   Query,
@@ -83,7 +82,7 @@ export class PostController {
     summary: 'Get post by id',
   })
   @ApiParam({ name: 'id', type: 'String' })
-  async findOne(@Param('id', ParseUUIDPipe) id: Uuid) {
+  async findOne(@Param('id') id: ID) {
     return this.postService.findOne(id);
   }
 
@@ -102,10 +101,7 @@ export class PostController {
     summary: 'Update post by id',
   })
   @ApiParam({ name: 'id', type: 'String' })
-  async update(
-    @Param('id', ParseUUIDPipe) id: Uuid,
-    @Body() reqDto: UpdatePostReqDto,
-  ) {
+  async update(@Param('id') id: ID, @Body() reqDto: UpdatePostReqDto) {
     return this.postService.update(id, reqDto);
   }
 
@@ -114,7 +110,7 @@ export class PostController {
     summary: 'Delete post',
   })
   @ApiParam({ name: 'id', type: 'String' })
-  async delete(@Param('id', ParseUUIDPipe) id: Uuid) {
+  async delete(@Param('id') id: ID) {
     return this.postService.delete(id);
   }
 }

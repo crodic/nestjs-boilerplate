@@ -1,4 +1,4 @@
-import { Uuid } from '@/common/types/common.type';
+import { ID } from '@/common/types/common.type';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -43,14 +43,14 @@ export class NotificationService {
     return notification;
   }
 
-  async markAsRead(notificationId: Uuid, userId: Uuid) {
+  async markAsRead(notificationId: ID, userId: ID) {
     return this.recipientRepo.update(
       { notificationId, userId },
       { isRead: true },
     );
   }
 
-  async getUserNotifications(userId: Uuid) {
+  async getUserNotifications(userId: ID) {
     return this.recipientRepo.find({
       where: { userId },
       relations: ['notification'],

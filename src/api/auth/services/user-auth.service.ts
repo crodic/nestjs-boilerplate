@@ -7,7 +7,7 @@ import {
   IForgotPasswordEmailJob,
   IVerifyEmailJob,
 } from '@/common/interfaces/job.interface';
-import { Uuid } from '@/common/types/common.type';
+import { ID } from '@/common/types/common.type';
 import { Branded } from '@/common/types/types';
 import { AllConfigType } from '@/config/config.type';
 import { SYSTEM_USER_ID } from '@/constants/app.constant';
@@ -487,7 +487,7 @@ export class UserAuthService {
     };
   }
 
-  async me(id: Uuid): Promise<UserResDto> {
+  async me(id: ID): Promise<UserResDto> {
     assert(id, 'id is required');
     const user = await this.userRepository.findOneBy({ id });
 
@@ -499,7 +499,7 @@ export class UserAuthService {
   }
 
   async changePassword(
-    id: Uuid,
+    id: ID,
     dto: ChangePasswordReqDto,
   ): Promise<ChangePasswordResDto> {
     const user = await this.userRepository.findOneByOrFail({ id });
