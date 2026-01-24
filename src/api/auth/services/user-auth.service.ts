@@ -29,6 +29,7 @@ import {
   Inject,
   Injectable,
   Logger,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { randomStringGenerator } from '@nestjs/common/utils/random-string-generator.util';
@@ -53,6 +54,7 @@ import { ResetPasswordResDto } from '../dto/reset-password.res.dto';
 import { LoginReqDto } from '../dto/users/login.req.dto';
 import { LoginResDto } from '../dto/users/login.res.dto';
 import { RegisterReqDto } from '../dto/users/register.req.dto';
+import { UpdateAuthUserMeReqDto } from '../dto/users/update-me.req.dto';
 import { VerifyAccountResDto } from '../dto/verify-account.req.dto';
 import { JwtForgotPasswordPayload } from '../types/jwt-forgot-password-payload';
 import { JwtPayloadType } from '../types/jwt-payload.type';
@@ -519,5 +521,26 @@ export class UserAuthService {
       message: 'Change password successfully',
       user: user.toDto(UserResDto),
     });
+  }
+
+  async updateMe(
+    id: ID,
+    dto: UpdateAuthUserMeReqDto,
+  ): Promise<{ message: string }> {
+    const user = await this.userRepository.findOneBy({ id });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    Object.assign(user, {
+      ...dto,
+      updatedBy: id,
+    });
+
+    await this.userRepository.save(user);
+
+    return {
+      message: 'success',
+    };
   }
 }

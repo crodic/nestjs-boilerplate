@@ -11,6 +11,7 @@ import {
   Controller,
   Get,
   Post,
+  Put,
   Query,
   Request,
   UseGuards,
@@ -27,6 +28,7 @@ import { ResetPasswordReqDto } from '../dto/reset-password.req.dto';
 import { LoginReqDto } from '../dto/users/login.req.dto';
 import { LoginResDto } from '../dto/users/login.res.dto';
 import { RegisterReqDto } from '../dto/users/register.req.dto';
+import { UpdateAuthUserMeReqDto } from '../dto/users/update-me.req.dto';
 import { UserAuthService } from '../services/user-auth.service';
 import { JwtPayloadType } from '../types/jwt-payload.type';
 
@@ -43,7 +45,7 @@ export class UserAuthenticationController {
     type: LoginReqDto,
     summary: '[User] Sign-in',
   })
-  @Post('sign-in')
+  @Post('login')
   async signIn(@Body() userLoginDto: LoginReqDto): Promise<LoginResDto> {
     return await this.userAuthService.signIn(userLoginDto);
   }
@@ -52,7 +54,7 @@ export class UserAuthenticationController {
     type: RegisterReqDto,
     summary: '[User] Sign-up',
   })
-  @Post('sign-up')
+  @Post('register')
   async signUp(@Body() dto: RegisterReqDto): Promise<RegisterResDto> {
     return await this.userAuthService.signUp(dto);
   }
@@ -141,5 +143,17 @@ export class UserAuthenticationController {
   @Get('me')
   async getCurrentUser(@CurrentUser('id') userId: ID): Promise<UserResDto> {
     return await this.userAuthService.me(userId);
+  }
+
+  @Put('me')
+  @ApiAuth({
+    type: UserResDto,
+    summary: 'Update current user',
+  })
+  async updateMe(
+    @CurrentUser('id') userId: ID,
+    @Body() reqDto: UpdateAuthUserMeReqDto,
+  ): Promise<{ message: string }> {
+    return await this.userAuthService.updateMe(userId, reqDto);
   }
 }
