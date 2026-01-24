@@ -38,7 +38,7 @@ export class NotificationRecipientEntity {
   @Column({ name: 'user_id', type: 'bigint' })
   userId: ID;
 
-  @Column({ default: false })
+  @Column({ default: false, name: 'is_read' })
   isRead: boolean;
 
   @CreateDateColumn({

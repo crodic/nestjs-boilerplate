@@ -1,38 +1,38 @@
-// import { MigrationInterface, QueryRunner } from 'typeorm';
+import { MigrationInterface, QueryRunner } from 'typeorm';
 
-// export class CreatePostsTable1758176705430 implements MigrationInterface {
-//   name = 'CreatePostsTable1758176705430';
+export class CreatePostsTable1758176705430 implements MigrationInterface {
+  name = 'CreatePostsTable1758176705430';
 
-//   public async up(queryRunner: QueryRunner): Promise<void> {
-//     await queryRunner.query(`
-//       CREATE TABLE "posts" (
-//           "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
-//           "title" character varying NOT NULL,
-//           "slug" character varying NOT NULL,
-//           "description" character varying,
-//           "content" character varying,
-//           "user_id" uuid NOT NULL,
-//           "deleted_at" TIMESTAMP WITH TIME ZONE,
-//           "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
-//           "created_by" character varying NOT NULL,
-//           "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
-//           "updated_by" character varying NOT NULL,
-//           CONSTRAINT "PK_post_id" PRIMARY KEY ("id")
-//       )
-//     `);
+  public async up(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(`
+      CREATE TABLE "posts" (
+          "id" BIGSERIAL NOT NULL,
+          "title" character varying NOT NULL,
+          "slug" character varying NOT NULL,
+          "description" character varying,
+          "content" character varying,
+          "user_id" bigint NOT NULL,
+          "deleted_at" TIMESTAMP WITH TIME ZONE,
+          "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+          "created_by" character varying NOT NULL,
+          "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+          "updated_by" character varying NOT NULL,
+          CONSTRAINT "PK_post_id" PRIMARY KEY ("id")
+      )
+    `);
 
-//     await queryRunner.query(`
-//       ALTER TABLE "posts"
-//       ADD CONSTRAINT "FK_post_user_id" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE NO ACTION ON UPDATE NO ACTION
-//     `);
-//   }
+    await queryRunner.query(`
+      ALTER TABLE "posts"
+      ADD CONSTRAINT "FK_post_user_id" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE NO ACTION ON UPDATE NO ACTION
+    `);
+  }
 
-//   public async down(queryRunner: QueryRunner): Promise<void> {
-//     await queryRunner.query(`
-//       ALTER TABLE "posts" DROP CONSTRAINT "FK_post_user_id"
-//     `);
-//     await queryRunner.query(`
-//       DROP TABLE "posts"
-//     `);
-//   }
-// }
+  public async down(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(`
+      ALTER TABLE "posts" DROP CONSTRAINT "FK_post_user_id"
+    `);
+    await queryRunner.query(`
+      DROP TABLE "posts"
+    `);
+  }
+}
